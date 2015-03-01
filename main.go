@@ -38,15 +38,15 @@ func main() {
 		}
 	}
 
-	more_rows, err := db.Query("select table_name, column_name, data_type, column_key, is_nullable from information_schema.columns where table_schema = ?", dbName)
+	more_rows, err := db.Query("select table_name, column_name, data_type, column_key, is_nullable, extra from information_schema.columns where table_schema = ?", dbName)
 
 	if err != nil {
 		panic(err)
 	}
 
 	for more_rows.Next() {
-		var tn, cn, ct, ck, nullable string
-		err := more_rows.Scan(&tn, &cn, &ct, &ck, &nullable)
+		var tn, cn, ct, ck, nullable, extra string
+		err := more_rows.Scan(&tn, &cn, &ct, &ck, &nullable, &extra)
 		if err != nil {
 			panic(err)
 		}
@@ -55,7 +55,7 @@ func main() {
 
 		col.Primary = ck == "PRI"
 		fmt.Println(col, ck)
-		if nullable == "NO" {
+		if nullable == "NO" && extra != "auto_increment" {
 			table.Constraints = append(table.Constraints, fmt.Sprintf(`if row.%s == %s {return errors.New("Preconditions failed, %s must be set.")}`, col.CapitalizedColumnName(), col.ColumnNullValue(), col.CapitalizedColumnName()))
 		}
 		table.TableColumns[cn] = col
@@ -76,10 +76,18 @@ type tableInfo struct {
 	Constraints  []string
 }
 
-func columnNames(cols []tableColumn) []string {
+func capitalizedColumnNames(cols []tableColumn) []string {
 	result := []string{}
 	for _, c := range cols {
 		result = append(result, c.CapitalizedColumnName())
+	}
+	return result
+}
+
+func columnNames(cols []tableColumn) []string {
+	result := []string{}
+	for _, c := range cols {
+		result = append(result, c.ColumnName)
 	}
 	return result
 }
@@ -122,7 +130,7 @@ func (t tableInfo) PrimaryWhere() string {
 }
 
 func (t tableInfo) PrimaryColumnsJoinedByAnd() string {
-	return strings.Join(columnNames(t.PrimaryColumns()), "And")
+	return strings.Join(capitalizedColumnNames(t.PrimaryColumns()), "And")
 }
 
 func colformat(cols []tableColumn, format string, joinstring string, str1, str2 func(tableColumn) string) string {
