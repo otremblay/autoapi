@@ -1,4 +1,4 @@
-package main
+package lib
 
 import (
 	"bytes"
@@ -7,6 +7,8 @@ import (
 	"html/template"
 	"io"
 	"os"
+
+	"golang.org/x/tools/imports"
 )
 
 type mainGenerator struct {
@@ -33,12 +35,13 @@ import({{$rootHandlersPackageName := .rootHandlersPackageName}}{{$rootdbpackagen
 	routestmpl := template.Must(template.New("mainRoutes").Parse(`
 func main(){
 	dbUrl := os.Args[1]
-    	db, err := sql.Open("mymysql", dbUrl)
+    	dbconn, err := sql.Open("mymysql", dbUrl)
 	if err != nil {
 		panic(err)
 	}
+    db.MustValidateChecksum(dbconn, os.Args[2])
     {{range .Tables}}
-    {{.TableName}}db.DB = db
+    {{.TableName}}db.DB = dbconn
     {{end}}
     r := mux.NewRouter()
     g := r.Methods("GET").Subrouter()
@@ -58,7 +61,11 @@ http.ListenAndServe(":8080",r)
 `))
 	routestmpl = routestmpl
 	var b bytes.Buffer
-	err := importstmpl.Execute(&b, map[string]interface{}{"rootHandlersPackageName": "is-a-dev.com/autoapi/http", "Tables": tables, "rootdbpackagename": "is-a-dev.com/autoapi/db"})
+	path, err := GetRootPath()
+	if err != nil {
+		return err
+	}
+	err = importstmpl.Execute(&b, map[string]interface{}{"rootHandlersPackageName": path + "/http", "Tables": tables, "rootdbpackagename": path + "/db"})
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -71,7 +78,12 @@ http.ListenAndServe(":8080",r)
 	if err != nil {
 		return err
 	}
+
 	formatted, err := format.Source(final.Bytes())
+	if err != nil {
+		return err
+	}
+	formatted, err = imports.Process(f.Name(), formatted, nil)
 	if err != nil {
 		return err
 	}

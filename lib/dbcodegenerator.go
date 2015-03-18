@@ -1,4 +1,4 @@
-package main
+package lib
 
 import (
 	"bytes"
@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"text/template"
+
+	"golang.org/x/tools/imports"
 )
 
 type dbCodeGenerator struct {
@@ -31,14 +33,14 @@ import (
 
 var DB libautoapi.DB
 
-{{if .PrimaryColumns}}
+{{if .CacheablePrimaryColumns}}
 //type {{.NormalizedTableName}}Cache struct{
 
 //    rowsByKey map{{range .PrimaryColumns}}[{{.MappedColumnType}}]{{end}}*{{.NormalizedTableName}}
 
 //}
 
-var cache = map{{range .PrimaryColumns}}[{{.MappedColumnType}}]{{end}}*{{.NormalizedTableName}}{}
+var cache = map{{range .CacheablePrimaryColumns}}[{{.MappedColumnType}}]{{end}}*{{.NormalizedTableName}}{}
 
 {{end}}
 
@@ -61,8 +63,8 @@ func All() ([]*{{.NormalizedTableName}}, error){
         rows.Scan(
             {{range .ColOrder}}&r.{{.CapitalizedColumnName}},
             {{end}})
-        {{if .PrimaryColumns}}
-          cache[r.{{range .PrimaryColumns}}{{.CapitalizedColumnName}}{{end}}] = r
+        {{if .CacheablePrimaryColumns}}
+          cache{{range .CacheablePrimaryColumns}}[r.{{.CapitalizedColumnName}}]{{end}} = r
         {{end}}
         result = append(result, r)
     }
@@ -70,8 +72,8 @@ func All() ([]*{{.NormalizedTableName}}, error){
 }
 
 func GetBy{{.PrimaryColumnsJoinedByAnd}}({{.PrimaryColumnsParamList}}) (*{{.NormalizedTableName}}, error) {
-    {{if .PrimaryColumns}}
-        if r, ok := cache[{{range .PrimaryColumns}}{{.LowercaseColumnName}}{{end}}]; ok { return r, nil}
+    {{if .CacheablePrimaryColumns}}
+      {{.GenGetCache .CacheablePrimaryColumns}} 
     {{end}}
     row := &{{.NormalizedTableName}}{}
     err := DB.QueryRow("SELECT {{.QueryFieldNames}} FROM {{.TableName}} WHERE {{.PrimaryWhere}}",
@@ -85,16 +87,18 @@ func GetBy{{.PrimaryColumnsJoinedByAnd}}({{.PrimaryColumnsParamList}}) (*{{.Norm
     return row, nil
 }
 
-func DeleteBy{{.PrimaryColumnsJoinedByAnd}}({{.PrimaryColumnsParamList}}) (*{{.NormalizedTableName}}, error) {
+{{if .PrimaryColumns }}
+func DeleteBy{{.PrimaryColumnsJoinedByAnd}}({{.PrimaryColumnsParamList}}) (error) {
     //TODO: remove from cache.
-    err := DB.Exec("DELETE FROM {{.TableName}} WHERE {{.PrimaryWhere}}",
+    _, err := DB.Exec("DELETE FROM {{.TableName}} WHERE {{.PrimaryWhere}}",
     {{range .PrimaryColumns}}{{.LowercaseColumnName}},
     {{end}})
     if err != nil {
-        return nil, err
+        return err
     }
-    return row, nil
+    return nil
 }
+{{end}}
 
 func Save(row *{{.NormalizedTableName}}) error {
     {{range .Constraints}}{{.}}{{end}}
@@ -102,8 +106,8 @@ func Save(row *{{.NormalizedTableName}}) error {
         {{range .ColOrder}}row.{{.CapitalizedColumnName}},
 {{end}})
     if err != nil {return err}
-        {{if .PrimaryColumns}}
-          cache[row.{{range .PrimaryColumns}}{{.CapitalizedColumnName}}{{end}}] = row
+        {{if .CacheablePrimaryColumns}}
+          cache{{range .CacheablePrimaryColumns}}[row.{{.CapitalizedColumnName}}]{{end}} = row
         {{end}}
     return nil
 }
@@ -124,10 +128,15 @@ func Save(row *{{.NormalizedTableName}}) error {
 			fmt.Println(b.String())
 			return err
 		}
+		bf, err = imports.Process(f.Name(), bf, nil)
+		if err != nil {
+			return err
+		}
 		_, err = io.Copy(f, bytes.NewBuffer(bf))
 		if err != nil {
 			return err
 		}
+
 	}
 	return nil
 }

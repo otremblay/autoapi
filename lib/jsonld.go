@@ -1,4 +1,4 @@
-package main
+package lib
 
 type jsonld struct {
 	DataTypes  map[string]interface{} `json:datatypes`

@@ -1,0 +1,27 @@
+DROP TABLE IF EXISTS every_type;
+CREATE TABLE every_type (
+			      
+			    a_tinyint  TINYINT,
+                    an_unsigned_tinyint TINYINT UNSIGNED ,
+                            a_smallint SMALLINT ,
+                   an_unsigned_smallint SMALLINT UNSIGNED,
+                      a_mediumint MEDIUMINT, 
+		      		  an_int INT ,
+    an_unsigned_mediumint MEDIUMINT UNSIGNED, 
+    			  an_unsigned_int INT UNSIGNED ,
+                             a_bigint BIGINT ,
+                     an_unsigned_bigint BIGINT UNSIGNED ,
+                              a_float FLOAT ,
+                              a_double DOUBLE ,
+                             a_decimal DECIMAL ,
+                 a_timestamp TIMESTAMP, 
+		 a_datetime DATETIME ,
+                                a_date DATE ,
+                                a_time TIME ,
+                                a_year YEAR(4) ,
+    a_char CHAR(50), a_varchar VARCHAR(50), a_binary BINARY(50), a_varbinary VARBINARY(50) ,
+ a_text TEXT, a_tinytext TINYTEXT, a_mediumtext MEDIUMTEXT, a_longtext LONGTEXT ,
+a_blob BLOB, a_tinyblob TINYBLOB, a_mediumblob MEDIUMBLOB, a_longblob LONGBLOB ,
+                                 a_bit BIT ,
+                           a_set SET('one','two'), 
+an_enum ENUM('x','y','z'));

@@ -1,4 +1,4 @@
-package main
+package lib
 
 import (
 	"fmt"
@@ -20,6 +20,11 @@ func (t tableInfo) QueryValuesSection() string {
 	return strings.Join(strings.Split(strings.Repeat("?", len(t.TableColumns)), ""), ",")
 }
 
+func (t tableInfo) CamelCaseTableName() string {
+	tn := t.NormalizedTableName()
+	return strings.ToLower(string(tn[0])) + tn[1:]
+}
+
 func (t tableInfo) NormalizedTableName() string {
 	var result string = ""
 	for _, tp := range strings.Split(t.TableName, "_") {
@@ -35,6 +40,16 @@ func (t tableInfo) PrimaryColumns() []tableColumn {
 	for _, col := range t.ColOrder {
 		if col.Primary {
 
+			result = append(result, col)
+		}
+	}
+	return result
+}
+
+func (t tableInfo) CacheablePrimaryColumns() []tableColumn {
+	result := make([]tableColumn, 0, len(t.ColOrder))
+	for _, col := range t.ColOrder {
+		if col.Primary && col.MappedColumnType() != "[]byte" {
 			result = append(result, col)
 		}
 	}
@@ -59,4 +74,19 @@ func (t tableInfo) PrimaryColumnsParamList() string {
 
 func (t tableInfo) UpsertDuplicate() string {
 	return colformat(t.ColOrder, "%s = VALUES(%s)", ",", lcn, lcn)
+}
+
+func (t tableInfo) GenGetCache(tc []tableColumn) string {
+	if len(tc) < 1 {
+		return ""
+	}
+	result := fmt.Sprintf("if r0, ok := cache[%s]; ok {", tc[0].LowercaseColumnName())
+	if len(tc) < 2 {
+		return result + "return r0,nil }"
+	}
+
+	for i, c := range tc[1:] {
+		result = result + fmt.Sprintf("if r%d, ok := r%d[%s]; ok {", i+1, i, c.LowercaseColumnName())
+	}
+	return result + fmt.Sprintf(" return r%d,nil ", len(tc)-1) + strings.Repeat("}", len(tc))
 }

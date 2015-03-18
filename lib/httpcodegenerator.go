@@ -1,7 +1,8 @@
-package main
+package lib
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"go/format"
 	"io"
@@ -67,14 +68,25 @@ func Delete(res http.ResponseWriter, req *http.Request){
 }
 
 `))
+	f, _ := os.Open("all.json")
+	schema := &jsonld{}
+	dec := json.NewDecoder(f)
+	dec.Decode(&schema)
+	path, err := GetRootPath()
+	if err != nil {
+		return err
+	}
 	for table, tinfo := range tables {
+		if m, ok := schema.Types[tinfo.NormalizedTableName()]; ok {
+			fmt.Println(m)
+		}
 		os.Mkdir("http/"+table, 0755)
 		f, err := os.Create("http/" + table + "/" + table + ".go")
 		if err != nil {
 			return err
 		}
 		var b bytes.Buffer
-		err = tmpl.Execute(&b, map[string]interface{}{"Table": tinfo, "DbRootPackageName": "is-a-dev.com/autoapi/db"})
+		err = tmpl.Execute(&b, map[string]interface{}{"Table": tinfo, "DbRootPackageName": path + "/db"})
 		if err != nil {
 			return err
 		}

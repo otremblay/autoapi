@@ -1,4 +1,4 @@
-package main
+package lib
 
 import (
 	"fmt"
@@ -26,14 +26,42 @@ func (t tableColumn) LowercaseColumnName() string {
 
 func (tc tableColumn) MappedColumnType() string {
 	switch tc.ColumnType {
-	case "text", "tinytext", "mediumtext", "longtex",
+	case "text", "tinytext", "mediumtext", "longtext",
 		"blob", "tinyblob", "mediumblob", "longblob",
-		"binary", "varbinary":
+		"binary", "varbinary", "bit", "set", "enum",
+		"char", "varchar":
 		return "[]byte"
-	case "char", "varchar":
-		return "string"
+	case "tinyint":
+		return "int8"
+	case "utinyint":
+		return "uint8"
+	case "smallint":
+		return "int16"
+	case "usmallint":
+		return "uint16"
+	case "mediumint", "int":
+		return "int32"
+	case "umediumint", "uint":
+		return "uint32"
+	case "bigint":
+		return "int64"
+	case "ubigint":
+		return "uint64"
+	case "year":
+		return "int16"
+	case "time":
+		return "time.Duration"
+	case "date":
+		return "mysql.Date"
+	case "datetime", "timestamp":
+		return "time.Time"
+	case "float":
+		return "float32"
+	case "decimal", "double":
+		return "float64"
 
 	}
+
 	return "interface{}"
 }
 
@@ -44,8 +72,9 @@ func (tc tableColumn) ColumnNullValue() string {
 		"binary", "varbinary":
 		return `nil`
 	case "char", "varchar":
-		return `""`
-
+		return `nil`
+	case "tinyint":
+		return "0"
 	}
 	return "nil"
 }
