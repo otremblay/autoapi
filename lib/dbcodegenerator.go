@@ -27,11 +27,11 @@ func (g *dbCodeGenerator) Generate(tables map[string]tableInfo) error {
 package {{.TableName}}
 
 import (
-"is-a-dev.com/libautoapi"
+"is-a-dev.com/autoapi/lib"
 //"errors"
 )
 
-var DB libautoapi.DB
+var DB lib.DB
 
 {{if .CacheablePrimaryColumns}}
 //type {{.NormalizedTableName}}Cache struct{
@@ -52,8 +52,8 @@ func New() *{{.NormalizedTableName}}{
     return &{{.NormalizedTableName}}{}
 }
 
-func All() ([]*{{.NormalizedTableName}}, error){
-    rows, err := DB.Query("SELECT {{.QueryFieldNames}} FROM {{.TableName}}")
+func FindWithWhere(where string, params ...interface{}) ([]*{{.NormalizedTableName}}, error) {
+    rows, err := DB.Query("SELECT {{.QueryFieldNames}} FROM {{.TableName}} " + where, params)
     if err != nil {
         return nil,err
     }
@@ -71,6 +71,10 @@ func All() ([]*{{.NormalizedTableName}}, error){
     return result, nil
 }
 
+func All() ([]*{{.NormalizedTableName}}, error){
+    return FindWithWhere("", nil)
+}
+
 func GetBy{{.PrimaryColumnsJoinedByAnd}}({{.PrimaryColumnsParamList}}) (*{{.NormalizedTableName}}, error) {
     {{if .CacheablePrimaryColumns}}
       {{.GenGetCache .CacheablePrimaryColumns}} 
@@ -86,6 +90,12 @@ func GetBy{{.PrimaryColumnsJoinedByAnd}}({{.PrimaryColumnsParamList}}) (*{{.Norm
     }
     return row, nil
 }
+{{$ntn := .NormalizedTableName}}
+{{range .ColOrder}}
+func FindBy{{.CapitalizedColumnName}}({{.LowercaseColumnName}} {{.MappedColumnType}}) ([]*{{$ntn}}, error){
+    return FindWithWhere("{{.ColumnName}} = ?", {{.LowercaseColumnName}})
+}
+{{end}}
 
 {{if .PrimaryColumns }}
 func DeleteBy{{.PrimaryColumnsJoinedByAnd}}({{.PrimaryColumnsParamList}}) (error) {

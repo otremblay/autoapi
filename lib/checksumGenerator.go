@@ -30,7 +30,7 @@ func Checksum() string{
 }
 
 func ValidateChecksum(db *sql.DB, dbName string) error {
-     b, err := libautoapi.DatabaseChecksum(db, dbName)	
+     b, err := lib.DatabaseChecksum(db, dbName)	
      if err != nil {
          return err
      }
