@@ -53,7 +53,7 @@ func New() *{{.NormalizedTableName}}{
 }
 
 func FindWithWhere(where string, params ...interface{}) ([]*{{.NormalizedTableName}}, error) {
-    rows, err := DB.Query("SELECT {{.QueryFieldNames}} FROM {{.TableName}} " + where, params)
+    rows, err := DB.Query("SELECT {{.QueryFieldNames}} FROM {{.TableName}} " + where, params...)
     if err != nil {
         return nil,err
     }
@@ -90,12 +90,24 @@ func GetBy{{.PrimaryColumnsJoinedByAnd}}({{.PrimaryColumnsParamList}}) (*{{.Norm
     }
     return row, nil
 }
-{{$ntn := .NormalizedTableName}}
+
+func Find({{.TableName}} *{{.NormalizedTableName}}) ([]*{{.NormalizedTableName}}, error){
+    where := []string{}
+    params := []interface{}{}
+{{$tn := .TableName}}
 {{range .ColOrder}}
-func FindBy{{.CapitalizedColumnName}}({{.LowercaseColumnName}} {{.MappedColumnType}}) ([]*{{$ntn}}, error){
-    return FindWithWhere("{{.ColumnName}} = ?", {{.LowercaseColumnName}})
-}
+    if {{printf "%s%s%s" $tn "." .CapitalizedColumnName | .NullCheck}} {
+        where = append(where , "{{.ColumnName}} = ?")
+        params = append(params, {{$tn}}.{{.CapitalizedColumnName}})
+    }
 {{end}}
+var resultingwhere string
+if len(where)>0{
+    resultingwhere = fmt.Sprintf("WHERE %s",strings.Join(where," AND "))
+}
+    return FindWithWhere(resultingwhere, params...)
+}
+
 
 {{if .PrimaryColumns }}
 func DeleteBy{{.PrimaryColumnsJoinedByAnd}}({{.PrimaryColumnsParamList}}) (error) {

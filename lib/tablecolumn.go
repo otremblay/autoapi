@@ -67,16 +67,39 @@ func (tc tableColumn) MappedColumnType() string {
 
 func (tc tableColumn) ColumnNullValue() string {
 	switch tc.ColumnType {
-	case "text", "tinytext", "mediumtext", "longtex",
+	case "text", "tinytext", "mediumtext", "longtext",
 		"blob", "tinyblob", "mediumblob", "longblob",
-		"binary", "varbinary":
-		return `nil`
-	case "char", "varchar":
-		return `nil`
-	case "tinyint":
+		"binary", "varbinary", "bit", "set", "enum",
+		"char", "varchar":
+		return "nil"
+	case "tinyint", "utinyint", "smallint", "usmallint", "mediumint", "int", "umediumint", "uint", "bigint", "ubigint", "year", "float", "double", "decimal":
 		return "0"
+	case "time":
+		return "nil"
+	case "date":
+		return "nil"
+	case "datetime", "timestamp":
+		return "nil"
 	}
+
 	return "nil"
+}
+
+func (tc tableColumn) NullCheck(varname string) string {
+	switch tc.ColumnType {
+	case "text", "tinytext", "mediumtext", "longtext",
+		"blob", "tinyblob", "mediumblob", "longblob",
+		"binary", "varbinary", "bit", "set", "enum",
+		"char", "varchar":
+		return fmt.Sprintf("%s != nil", varname)
+	case "tinyint", "utinyint", "smallint", "usmallint", "mediumint", "int", "umediumint", "uint", "bigint", "ubigint", "year", "float", "decimal", "double", "time":
+		return fmt.Sprintf("%s != 0", varname)
+	case "date", "datetime", "timestamp":
+		return fmt.Sprintf("!%s.IsZero()", varname)
+	}
+
+	return "false"
+
 }
 
 func colformat(cols []tableColumn, format string, joinstring string, str1, str2 func(tableColumn) string) string {
