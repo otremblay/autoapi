@@ -44,8 +44,15 @@ func List(res http.ResponseWriter, req *http.Request){
 
 func Get(res http.ResponseWriter, req *http.Request){
     vars := mux.Vars(req)
+    idstring := vars["id"]
+ 
     enc := json.NewEncoder(res)
-    row, _ := {{.Table.TableName}}.GetBy{{.Table.PrimaryColumnsJoinedByAnd}}(vars["id"])
+    {{if len .Table.PrimaryColumns gt 1}}
+        id_slice := strings.Split(vars["id"])
+    {{else}}
+        vars["id"]
+    {{end}}
+    row, _ := {{.Table.TableName}}.GetBy{{.Table.PrimaryColumnsJoinedByAnd}}(id)
     enc.Encode(row)
 }
 
