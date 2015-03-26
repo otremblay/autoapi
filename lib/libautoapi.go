@@ -79,6 +79,13 @@ func Generate(db *sql.DB, dbName string) error {
 		return err
 	}
 	err = (&checksumGenerator{}).Generate(tables)
+	if err != nil {
+		return err
+	}
+	err = (&swaggerGenerator{}).Generate(tables)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

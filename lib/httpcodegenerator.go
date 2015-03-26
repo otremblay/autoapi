@@ -47,7 +47,8 @@ func Get(res http.ResponseWriter, req *http.Request){
     idstring := vars["id"]
  
     enc := json.NewEncoder(res)
-    {{if len .Table.PrimaryColumns gt 1}}
+    {{$l := len .Table.PrimaryColumns}}
+    {{if gt $l 1}}
         id_slice := strings.Split(vars["id"])
     {{else}}
         vars["id"]
