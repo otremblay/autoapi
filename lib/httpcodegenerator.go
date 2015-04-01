@@ -2,7 +2,6 @@ package lib
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"go/format"
 	"io"
@@ -51,7 +50,8 @@ func Get(res http.ResponseWriter, req *http.Request){
     {{if gt $l 1}}
         id_slice := strings.Split(vars["id"])
     {{else}}
-        vars["id"]
+        param := vars["id"]
+        {{.FirstPrimaryColumnTypeConverter}}
     {{end}}
     row, _ := {{.Table.TableName}}.GetBy{{.Table.PrimaryColumnsJoinedByAnd}}(id)
     enc.Encode(row)
@@ -76,18 +76,13 @@ func Delete(res http.ResponseWriter, req *http.Request){
 }
 
 `))
-	f, _ := os.Open("all.json")
-	schema := &jsonld{}
-	dec := json.NewDecoder(f)
-	dec.Decode(&schema)
+
 	path, err := GetRootPath()
 	if err != nil {
 		return err
 	}
 	for table, tinfo := range tables {
-		if m, ok := schema.Types[tinfo.NormalizedTableName()]; ok {
-			fmt.Println(m)
-		}
+
 		os.Mkdir("http/"+table, 0755)
 		f, err := os.Create("http/" + table + "/" + table + ".go")
 		if err != nil {

@@ -35,6 +35,29 @@ func (t tableInfo) NormalizedTableName() string {
 	return result
 }
 
+func (t tableInfo) FirstPrimaryColumnTypeConverter() string {
+	pcs := t.PrimaryColumns()
+	if len(pcs) > 0 {
+		preamble := `
+i, err := strconv.Atoi(param)
+if err != nil {
+fmt.Println(err)
+return
+}
+id := %s(i)
+`
+		x := pcs[0].MappedColumnType()
+		switch x {
+		case "int", "uint8", "int8", "uint16", "int16", "uint32", "int32", "uint64", "int64":
+			return fmt.Sprintf(preamble, x)
+		case "[]byte":
+			return "id := []byte(param)"
+		default:
+			return "id := param"
+		}
+	}
+}
+
 func (t tableInfo) PrimaryColumns() []tableColumn {
 	result := make([]tableColumn, 0, len(t.ColOrder))
 	for _, col := range t.ColOrder {
