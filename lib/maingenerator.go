@@ -24,6 +24,7 @@ import({{$rootHandlersPackageName := .rootHandlersPackageName}}{{$rootdbpackagen
 {{range .Tables}}"{{$rootHandlersPackageName}}/{{.TableName}}"
 {{.TableName}}db "{{$rootdbpackagename}}/{{.TableName}}"
 {{end}}
+"{{$rootdbpackagename}}"
 "net/http"
 	"github.com/gorilla/mux"
 "os"
@@ -49,8 +50,12 @@ func main(){
     pu := r.Methods("PUT").Subrouter()
     d := r.Methods("DELETE").Subrouter()
 {{range .Tables}}
+{{$l := len .PrimaryColumns}}
+
 g.HandleFunc("/{{.TableName}}/", {{.TableName}}.List)
+{{if gt $l 0}}
 g.HandleFunc("/{{.TableName}}/{id}/", {{.TableName}}.Get)
+{{end}}
 po.HandleFunc("/{{.TableName}}/", {{.TableName}}.Post)
 pu.HandleFunc("/{{.TableName}}/{id}/", {{.TableName}}.Put)
 d.HandleFunc("/{{.TableName}}/{id}/", {{.TableName}}.Delete)

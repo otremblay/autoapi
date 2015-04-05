@@ -72,7 +72,7 @@ func FindWithWhere(where string, params ...interface{}) ([]*{{.NormalizedTableNa
 }
 
 func All() ([]*{{.NormalizedTableName}}, error){
-    return FindWithWhere("", nil)
+    return FindWithWhere("")
 }
 
 func GetBy{{.PrimaryColumnsJoinedByAnd}}({{.PrimaryColumnsParamList}}) (*{{.NormalizedTableName}}, error) {

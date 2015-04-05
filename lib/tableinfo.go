@@ -56,6 +56,7 @@ id := %s(i)
 			return "id := param"
 		}
 	}
+	return "id := param"
 }
 
 func (t tableInfo) PrimaryColumns() []tableColumn {

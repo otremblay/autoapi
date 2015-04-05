@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"text/template"
+
+	"golang.org/x/tools/imports"
 )
 
 type httpCodeGenerator struct {
@@ -37,38 +39,48 @@ import (
 
 func List(res http.ResponseWriter, req *http.Request){
     enc := json.NewEncoder(res)
-    rows, _ := {{.Table.TableName}}.All()
+    rows, err := {{.Table.TableName}}.All()
+    if err != nil {
+        log.Println(err)
+    }
     enc.Encode(rows)
 }
 
+{{$l := len .Table.PrimaryColumns}}
+{{if gt $l 0}}
 func Get(res http.ResponseWriter, req *http.Request){
     vars := mux.Vars(req)
-    idstring := vars["id"]
+
  
     enc := json.NewEncoder(res)
-    {{$l := len .Table.PrimaryColumns}}
+
     {{if gt $l 1}}
         id_slice := strings.Split(vars["id"])
+        param := id_slice["id"]
+       {{.Table.FirstPrimaryColumnTypeConverter}}
     {{else}}
         param := vars["id"]
-        {{.FirstPrimaryColumnTypeConverter}}
-    {{end}}
+       {{.Table.FirstPrimaryColumnTypeConverter}} 
+   {{end}}
+ 
     row, _ := {{.Table.TableName}}.GetBy{{.Table.PrimaryColumnsJoinedByAnd}}(id)
     enc.Encode(row)
 }
+{{end}}
 
 func Post(res http.ResponseWriter, req *http.Request){
-    dec := json.NewDecoder(req.Body)
-    row := &{{.Table.TableName}}.{{.Table.NormalizedTableName}}{}
-    dec.Decode(&row)
-    {{.Table.TableName}}.Save(row)
+    save(req)
 }
 
 func Put(res http.ResponseWriter, req *http.Request){
+    save(req)
+}
+
+func save(req *http.Request) error {
     dec := json.NewDecoder(req.Body)
     row := &{{.Table.TableName}}.{{.Table.NormalizedTableName}}{}
     dec.Decode(&row)
-    {{.Table.TableName}}.Save(row)
+    return {{.Table.TableName}}.Save(row)
 }
 
 func Delete(res http.ResponseWriter, req *http.Request){
@@ -98,6 +110,12 @@ func Delete(res http.ResponseWriter, req *http.Request){
 			fmt.Println(b.String())
 			return err
 		}
+
+		bf, err = imports.Process(f.Name(), bf, nil)
+		if err != nil {
+			return err
+		}
+
 		_, err = io.Copy(f, bytes.NewBuffer(bf))
 		if err != nil {
 			return err
