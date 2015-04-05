@@ -53,12 +53,14 @@ func main(){
 {{$l := len .PrimaryColumns}}
 
 g.HandleFunc("/{{.TableName}}/", {{.TableName}}.List)
+po.HandleFunc("/{{.TableName}}/", {{.TableName}}.Post)
 {{if gt $l 0}}
 g.HandleFunc("/{{.TableName}}/{id}/", {{.TableName}}.Get)
-{{end}}
-po.HandleFunc("/{{.TableName}}/", {{.TableName}}.Post)
 pu.HandleFunc("/{{.TableName}}/{id}/", {{.TableName}}.Put)
 d.HandleFunc("/{{.TableName}}/{id}/", {{.TableName}}.Delete)
+{{end}}
+
+
 {{end}}
 
 http.ListenAndServe(":8080",r)
@@ -72,6 +74,7 @@ http.ListenAndServe(":8080",r)
 	}
 	err = importstmpl.Execute(&b, map[string]interface{}{"rootHandlersPackageName": path + "/http", "Tables": tables, "rootdbpackagename": path + "/db"})
 	if err != nil {
+		fmt.Println(b.String())
 		fmt.Println(err)
 	}
 	var final bytes.Buffer

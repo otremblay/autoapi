@@ -72,6 +72,13 @@ func (sg *swaggerGenerator) Generate(tables map[string]tableInfo) error {
 			request["get"] = msi{
 				"produces":  produces,
 				"responses": msi{"404": msi{"description": "Not Found"}},
+				"parameters": []msi{msi{
+					"name":     "id",
+					"in":       "path",
+					"format":   t.PrimaryColumns()[0].SwaggerFormat(),
+					"type":     t.PrimaryColumns()[0].SwaggerColumnType(),
+					"required": "true"},
+				},
 			}
 
 			request["put"] = msi{
@@ -81,6 +88,13 @@ func (sg *swaggerGenerator) Generate(tables map[string]tableInfo) error {
 					"404": msi{"description": "Not Found"},
 					"405": msi{"description": "Invalid input"},
 				},
+				"parameters": []msi{msi{
+					"name":     "id",
+					"in":       "path",
+					"format":   t.PrimaryColumns()[0].SwaggerFormat(),
+					"type":     t.PrimaryColumns()[0].SwaggerColumnType(),
+					"required": "true"},
+				},
 			}
 
 			request["delete"] = msi{
@@ -88,6 +102,13 @@ func (sg *swaggerGenerator) Generate(tables map[string]tableInfo) error {
 				"produces": produces,
 				"responses": msi{
 					"404": msi{"description": "Not Found"},
+				},
+				"parameters": []msi{msi{
+					"name":     "id",
+					"in":       "path",
+					"format":   t.PrimaryColumns()[0].SwaggerFormat(),
+					"type":     t.PrimaryColumns()[0].SwaggerColumnType(),
+					"required": "true"},
 				},
 			}
 			paths[fmt.Sprintf("/%s/{%s}", t.CamelCaseTableName(), t.PrimaryColumns()[0].LowercaseColumnName())] = request

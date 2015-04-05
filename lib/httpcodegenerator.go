@@ -73,6 +73,20 @@ func Post(res http.ResponseWriter, req *http.Request){
 }
 
 func Put(res http.ResponseWriter, req *http.Request){
+    {{if gt $l 1}}
+        id_slice := strings.Split(vars["id"])
+        param := id_slice["id"]
+       {{.Table.FirstPrimaryColumnTypeConverter}}
+    {{else}}
+        param := vars["id"]
+       {{.Table.FirstPrimaryColumnTypeConverter}} 
+   {{end}}
+    row, err := {{.Table.TableName}}.GetBy{{.Table.PrimaryColumnsJoinedByAnd}}(id)
+    if err != nil {
+        fmt.Println(err)
+        fmt.Fprintln(res, err)
+        return
+    }
     save(req)
 }
 
@@ -84,7 +98,15 @@ func save(req *http.Request) error {
 }
 
 func Delete(res http.ResponseWriter, req *http.Request){
-    fmt.Fprintf(res, "Delete stub!")
+    {{if gt $l 1}}
+        id_slice := strings.Split(vars["id"])
+        param := id_slice["id"]
+       {{.Table.FirstPrimaryColumnTypeConverter}}
+    {{else}}
+        param := vars["id"]
+       {{.Table.FirstPrimaryColumnTypeConverter}} 
+   {{end}}
+    {{.Table.TableName}}.DeleteBy{{.Table.PrimaryColumnsJoinedByAnd}}(id)
 }
 
 `))
@@ -98,11 +120,13 @@ func Delete(res http.ResponseWriter, req *http.Request){
 		os.Mkdir("http/"+table, 0755)
 		f, err := os.Create("http/" + table + "/" + table + ".go")
 		if err != nil {
+
 			return err
 		}
 		var b bytes.Buffer
 		err = tmpl.Execute(&b, map[string]interface{}{"Table": tinfo, "DbRootPackageName": path + "/db"})
 		if err != nil {
+			fmt.Println(b.String())
 			return err
 		}
 		bf, err := format.Source(b.Bytes())

@@ -24,6 +24,47 @@ func (t tableColumn) LowercaseColumnName() string {
 	return strings.ToLower(t.ColumnName)
 }
 
+func (tc tableColumn) SwaggerColumnType() string {
+	ct := tc.MappedColumnType()
+	if strings.Contains(ct, "int") {
+		return "integer"
+	}
+	if strings.Contains(ct, "float") {
+		return "number"
+	}
+	if strings.Contains(tc.ColumnType, "bit") {
+		return "boolean"
+	}
+
+	return "string"
+}
+
+func (tc tableColumn) SwaggerFormat() string {
+	ct := tc.MappedColumnType()
+	if strings.Contains(ct, "int") {
+		return ct
+	}
+	if strings.Contains(ct, "float") {
+		return "float"
+	}
+	if strings.Contains(ct, "byte") {
+		return "byte"
+	}
+
+	if strings.Contains(ct, "time") {
+		return "date-time"
+	}
+	if strings.Contains(ct, "date") {
+		return "date"
+	}
+
+	if strings.Contains(tc.ColumnName, "password") {
+		return "password"
+	}
+
+	return ""
+}
+
 func (tc tableColumn) MappedColumnType() string {
 	switch tc.ColumnType {
 	case "text", "tinytext", "mediumtext", "longtext",

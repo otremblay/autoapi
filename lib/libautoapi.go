@@ -64,26 +64,32 @@ func getTableInfo(db *sql.DB, dbName string) (map[string]tableInfo, error) {
 func Generate(db *sql.DB, dbName string) error {
 	tables, err := getTableInfo(db, dbName)
 	if err != nil {
+		fmt.Println("failed getting table info")
 		return err
 	}
 	err = (&dbCodeGenerator{}).Generate(tables)
 	if err != nil {
+		fmt.Println("failed generating db code")
 		return err
 	}
 	err = (&httpCodeGenerator{}).Generate(tables)
 	if err != nil {
+		fmt.Println("failed generating http code")
 		return err
 	}
 	err = (&mainGenerator{}).Generate(tables)
 	if err != nil {
+		fmt.Println("failed generating maincode")
 		return err
 	}
 	err = (&checksumGenerator{}).Generate(tables)
 	if err != nil {
+		fmt.Println("failed generating checksumcode")
 		return err
 	}
 	err = (&swaggerGenerator{}).Generate(tables)
 	if err != nil {
+		fmt.Println("failed generating swagger json")
 		return err
 	}
 	return nil
