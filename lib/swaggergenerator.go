@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 )
 
 type swaggerGenerator struct{}
@@ -30,19 +29,30 @@ func (sg *swaggerGenerator) Generate(tables map[string]tableInfo) error {
 	produces := consumes
 
 	for _, t := range tables {
+
+		refdef := fmt.Sprintf("#/definitions/%s", t.NormalizedTableName())
+		idparam := msi{}
+		if len(t.PrimaryColumns()) > 0 {
+			idparam = msi{
+				"name":     t.PrimaryColumns()[0].LowercaseColumnName(),
+				"in":       "path",
+				"format":   t.PrimaryColumns()[0].SwaggerFormat(),
+				"type":     t.PrimaryColumns()[0].SwaggerColumnType(),
+				"required": "true"}
+		}
+		bodydef := msi{
+			"name":     "body",
+			"in":       "body",
+			"required": "true",
+			"schema":   msi{"$ref": refdef},
+		}
 		props := msi{}
 		def := msi{"properties": props}
 		for _, c := range t.ColOrder {
 
 			prop := msi{}
-			ct := c.MappedColumnType()
-			if strings.HasPrefix(ct, "int") {
-				prop["type"] = "integer"
-				prop["format"] = c.MappedColumnType()
-			}
-			if strings.HasPrefix(ct, "bool") {
-				prop["type"] = "boolean"
-			}
+			prop["type"] = c.SwaggerColumnType()
+			prop["format"] = c.SwaggerFormat()
 			props[c.LowercaseColumnName()] = prop
 		}
 
@@ -53,32 +63,31 @@ func (sg *swaggerGenerator) Generate(tables map[string]tableInfo) error {
 			"responses": msi{
 				"200": msi{
 					"schema": msi{
-						"items": msi{"$ref": fmt.Sprintf("#/definitions/%s", t.NormalizedTableName())},
+						"$ref": refdef,
 					},
 					"type": "array",
 				},
+				"400": msi{"description": "Empty collection"},
 			},
 		}
 
 		request["post"] = msi{
-			"consumes":  consumes,
-			"produces":  produces,
-			"responses": msi{"405": msi{"description": "Invalid input"}},
+			"consumes":   consumes,
+			"produces":   produces,
+			"responses":  msi{"405": msi{"description": "Invalid input"}},
+			"parameters": []msi{bodydef},
 		}
 
 		paths[fmt.Sprintf("/%s", t.CamelCaseTableName())] = request
 		if len(t.PrimaryColumns()) > 0 {
 			request = msi{}
 			request["get"] = msi{
-				"produces":  produces,
-				"responses": msi{"404": msi{"description": "Not Found"}},
-				"parameters": []msi{msi{
-					"name":     "id",
-					"in":       "path",
-					"format":   t.PrimaryColumns()[0].SwaggerFormat(),
-					"type":     t.PrimaryColumns()[0].SwaggerColumnType(),
-					"required": "true"},
+				"produces": produces,
+				"responses": msi{
+					"404": msi{"description": "Not Found"},
+					"200": msi{"$ref": refdef},
 				},
+				"parameters": []msi{idparam},
 			}
 
 			request["put"] = msi{
@@ -88,12 +97,9 @@ func (sg *swaggerGenerator) Generate(tables map[string]tableInfo) error {
 					"404": msi{"description": "Not Found"},
 					"405": msi{"description": "Invalid input"},
 				},
-				"parameters": []msi{msi{
-					"name":     "id",
-					"in":       "path",
-					"format":   t.PrimaryColumns()[0].SwaggerFormat(),
-					"type":     t.PrimaryColumns()[0].SwaggerColumnType(),
-					"required": "true"},
+				"parameters": []msi{
+					idparam,
+					bodydef,
 				},
 			}
 
@@ -103,12 +109,8 @@ func (sg *swaggerGenerator) Generate(tables map[string]tableInfo) error {
 				"responses": msi{
 					"404": msi{"description": "Not Found"},
 				},
-				"parameters": []msi{msi{
-					"name":     "id",
-					"in":       "path",
-					"format":   t.PrimaryColumns()[0].SwaggerFormat(),
-					"type":     t.PrimaryColumns()[0].SwaggerColumnType(),
-					"required": "true"},
+				"parameters": []msi{
+					idparam,
 				},
 			}
 			paths[fmt.Sprintf("/%s/{%s}", t.CamelCaseTableName(), t.PrimaryColumns()[0].LowercaseColumnName())] = request

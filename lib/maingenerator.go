@@ -52,12 +52,12 @@ func main(){
 {{range .Tables}}
 {{$l := len .PrimaryColumns}}
 
-g.HandleFunc("/{{.TableName}}/", {{.TableName}}.List)
-po.HandleFunc("/{{.TableName}}/", {{.TableName}}.Post)
+g.HandleFunc("/{{.TableName}}", {{.TableName}}.List)
+po.HandleFunc("/{{.TableName}}", {{.TableName}}.Post)
 {{if gt $l 0}}
-g.HandleFunc("/{{.TableName}}/{id}/", {{.TableName}}.Get)
-pu.HandleFunc("/{{.TableName}}/{id}/", {{.TableName}}.Put)
-d.HandleFunc("/{{.TableName}}/{id}/", {{.TableName}}.Delete)
+g.HandleFunc("/{{.TableName}}/{id}", {{.TableName}}.Get)
+pu.HandleFunc("/{{.TableName}}/{id}", {{.TableName}}.Put)
+d.HandleFunc("/{{.TableName}}/{id}", {{.TableName}}.Delete)
 {{end}}
 
 
