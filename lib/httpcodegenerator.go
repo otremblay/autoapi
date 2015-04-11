@@ -73,6 +73,7 @@ func Post(res http.ResponseWriter, req *http.Request){
 }
 
 func Put(res http.ResponseWriter, req *http.Request){
+    vars := mux.Vars(req)
     {{if gt $l 1}}
         id_slice := strings.Split(vars["id"])
         param := id_slice["id"]
@@ -98,6 +99,7 @@ func save(req *http.Request) error {
 }
 
 func Delete(res http.ResponseWriter, req *http.Request){
+    vars := mux.Vars(req)
     {{if gt $l 1}}
         id_slice := strings.Split(vars["id"])
         param := id_slice["id"]
@@ -118,8 +120,8 @@ func Delete(res http.ResponseWriter, req *http.Request){
 	for table, tinfo := range tables {
 
 		os.Mkdir("http/"+table, 0755)
-		f, err := os.Create("http/" + table + "/" + table + ".go")
-		if err != nil {
+		f, err := os.Open("http/" + table + "/" + table + ".go")
+		if err != nil && !os.IsExist(err) {
 
 			return err
 		}

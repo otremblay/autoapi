@@ -16,7 +16,7 @@ type dbCodeGenerator struct {
 
 func (g *dbCodeGenerator) Generate(tables map[string]tableInfo) error {
 	err := os.Mkdir("db", 0755)
-	if err != nil {
+	if err != nil && !os.IsExist(err) {
 		return err
 	}
 
@@ -137,7 +137,7 @@ func Save(row *{{.NormalizedTableName}}) error {
 	for table, tinfo := range tables {
 		os.Mkdir("db/"+table, 0755)
 		f, err := os.Create("db/" + table + "/" + table + ".go")
-		if err != nil {
+		if err != nil && !os.IsExist(err) {
 			return err
 		}
 		var b bytes.Buffer

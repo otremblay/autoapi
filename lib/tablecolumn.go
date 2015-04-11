@@ -67,11 +67,11 @@ func (tc tableColumn) SwaggerFormat() string {
 
 func (tc tableColumn) MappedColumnType() string {
 	switch tc.ColumnType {
-	case "text", "tinytext", "mediumtext", "longtext",
-		"blob", "tinyblob", "mediumblob", "longblob",
-		"binary", "varbinary", "bit", "set", "enum",
-		"char", "varchar":
+	case "blob", "tinyblob", "mediumblob", "longblob",
+		"binary", "varbinary", "bit", "set", "enum":
 		return "[]byte"
+	case "text", "tinytext", "mediumtext", "longtext", "char", "varchar":
+		return "string"
 	case "tinyint":
 		return "int8"
 	case "utinyint":
@@ -108,11 +108,11 @@ func (tc tableColumn) MappedColumnType() string {
 
 func (tc tableColumn) ColumnNullValue() string {
 	switch tc.ColumnType {
-	case "text", "tinytext", "mediumtext", "longtext",
-		"blob", "tinyblob", "mediumblob", "longblob",
-		"binary", "varbinary", "bit", "set", "enum",
-		"char", "varchar":
+	case "blob", "tinyblob", "mediumblob", "longblob",
+		"binary", "varbinary", "bit", "set", "enum":
 		return "nil"
+	case "char", "varchar", "text", "tinytext", "mediumtext", "longtext":
+		return `""`
 	case "tinyint", "utinyint", "smallint", "usmallint", "mediumint", "int", "umediumint", "uint", "bigint", "ubigint", "year", "float", "double", "decimal":
 		return "0"
 	case "time":

@@ -51,7 +51,7 @@ var ErrBadDatabaseChecksum = errors.New("The code doesn't match the database's s
 `))
 
 	f, err := os.Create("db/checksum.go")
-	if err != nil {
+	if err != nil && !os.IsExist(err) {
 		return err
 	}
 	var b bytes.Buffer

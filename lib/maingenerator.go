@@ -83,7 +83,7 @@ http.ListenAndServe(":8080",r)
 	routestmpl.Execute(&b, map[string]interface{}{"Verbs": []string{"List", "Get", "Post", "Put", "Delete"}, "Tables": tables})
 	io.Copy(&final, &b)
 	f, err := os.Create("bin/main.go")
-	if err != nil {
+	if err != nil && !os.IsExist(err) {
 		return err
 	}
 
