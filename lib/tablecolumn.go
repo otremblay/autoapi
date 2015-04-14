@@ -128,11 +128,14 @@ func (tc tableColumn) ColumnNullValue() string {
 
 func (tc tableColumn) NullCheck(varname string) string {
 	switch tc.ColumnType {
-	case "text", "tinytext", "mediumtext", "longtext",
-		"blob", "tinyblob", "mediumblob", "longblob",
-		"binary", "varbinary", "bit", "set", "enum",
-		"char", "varchar":
+	case "blob", "tinyblob", "mediumblob", "longblob",
+		"binary", "varbinary", "bit", "set", "enum":
+
 		return fmt.Sprintf("%s != nil", varname)
+	case "text", "tinytext", "mediumtext", "longtext",
+		"char", "varchar":
+		return fmt.Sprintf(`%s != ""`, varname)
+
 	case "tinyint", "utinyint", "smallint", "usmallint", "mediumint", "int", "umediumint", "uint", "bigint", "ubigint", "year", "float", "decimal", "double", "time":
 		return fmt.Sprintf("%s != 0", varname)
 	case "date", "datetime", "timestamp":

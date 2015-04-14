@@ -72,7 +72,7 @@ http.ListenAndServe(":8080",r)
 	if err != nil {
 		return err
 	}
-	err = importstmpl.Execute(&b, map[string]interface{}{"rootHandlersPackageName": path + "/http", "Tables": tables, "rootdbpackagename": path + "/db"})
+	err = importstmpl.Execute(&b, map[string]interface{}{"rootHandlersPackageName": path + "/http", "Tables": tables, "rootdbpackagename": path + "/" + rootdbpath})
 	if err != nil {
 		fmt.Println(b.String())
 		fmt.Println(err)

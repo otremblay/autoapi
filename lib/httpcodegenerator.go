@@ -17,7 +17,7 @@ type httpCodeGenerator struct {
 
 func (g *httpCodeGenerator) Generate(tables map[string]tableInfo) error {
 	err := os.Mkdir("http", 0755)
-	if err != nil {
+	if err != nil && !os.IsExist(err) {
 		return err
 	}
 	tmpl := template.Must(template.New("httphandlers").Parse(`//WARNING.
@@ -28,7 +28,7 @@ package {{.Table.TableName}}
 
 import (
 "{{.DbRootPackageName}}/{{.Table.TableName}}"
-
+dbi "{{.dbiroot}}/{{.Table.TableName}}"
 "net/http"
 "fmt"
 "encoding/json"
@@ -71,7 +71,7 @@ func Get(res http.ResponseWriter, req *http.Request){
 func Post(res http.ResponseWriter, req *http.Request){
     save(req)
 }
-
+{{if gt $l 0}}
 func Put(res http.ResponseWriter, req *http.Request){
     vars := mux.Vars(req)
     {{if gt $l 1}}
@@ -82,22 +82,22 @@ func Put(res http.ResponseWriter, req *http.Request){
         param := vars["id"]
        {{.Table.FirstPrimaryColumnTypeConverter}} 
    {{end}}
-    row, err := {{.Table.TableName}}.GetBy{{.Table.PrimaryColumnsJoinedByAnd}}(id)
-    if err != nil {
-        fmt.Println(err)
-        fmt.Fprintln(res, err)
+    _, get_err := {{.Table.TableName}}.GetBy{{.Table.PrimaryColumnsJoinedByAnd}}(id)
+    if get_err != nil {
+        fmt.Println(get_err)
+        fmt.Fprintln(res, get_err)
         return
     }
     save(req)
 }
-
+{{end}}
 func save(req *http.Request) error {
     dec := json.NewDecoder(req.Body)
-    row := &{{.Table.TableName}}.{{.Table.NormalizedTableName}}{}
+    row := &dbi.{{.Table.NormalizedTableName}}{}
     dec.Decode(&row)
     return {{.Table.TableName}}.Save(row)
 }
-
+{{if gt $l 0}}
 func Delete(res http.ResponseWriter, req *http.Request){
     vars := mux.Vars(req)
     {{if gt $l 1}}
@@ -110,7 +110,7 @@ func Delete(res http.ResponseWriter, req *http.Request){
    {{end}}
     {{.Table.TableName}}.DeleteBy{{.Table.PrimaryColumnsJoinedByAnd}}(id)
 }
-
+{{end}}
 `))
 
 	path, err := GetRootPath()
@@ -120,13 +120,13 @@ func Delete(res http.ResponseWriter, req *http.Request){
 	for table, tinfo := range tables {
 
 		os.Mkdir("http/"+table, 0755)
-		f, err := os.Open("http/" + table + "/" + table + ".go")
+		f, err := os.Create("http/" + table + "/" + table + ".go")
 		if err != nil && !os.IsExist(err) {
 
 			return err
 		}
 		var b bytes.Buffer
-		err = tmpl.Execute(&b, map[string]interface{}{"Table": tinfo, "DbRootPackageName": path + "/db"})
+		err = tmpl.Execute(&b, map[string]interface{}{"Table": tinfo, "DbRootPackageName": path + "/" + rootdbpath, "dbiroot": path + "/dbi"})
 		if err != nil {
 			fmt.Println(b.String())
 			return err

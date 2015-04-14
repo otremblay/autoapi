@@ -67,6 +67,11 @@ func Generate(db *sql.DB, dbName string) error {
 		fmt.Println("failed getting table info")
 		return err
 	}
+	err = (&dbiCodeGenerator{}).Generate(tables)
+	if err != nil {
+		fmt.Println("failed generating db code")
+		return err
+	}
 	err = (&dbCodeGenerator{}).Generate(tables)
 	if err != nil {
 		fmt.Println("failed generating db code")
@@ -136,3 +141,5 @@ func GetRootPath() (string, error) {
 	}
 	return pathes[1], nil
 }
+
+var rootdbpath = "db/mysql"
