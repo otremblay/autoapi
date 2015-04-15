@@ -7,6 +7,12 @@ Automatic api generation from an SQL database, complete with http API endpoint s
 Installation
 ============
 
+## Prerequisites
+* go >= 1.3 (see http://golang.org/)
+* a mysql database
+
+
+## Procedure
     go get is-a-dev.com/autoapi
 
 Usage
