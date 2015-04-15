@@ -7,12 +7,7 @@ Automatic api generation from an SQL database, complete with http API endpoint s
 Installation
 ============
 
-Because I'm a lazy bum, I have not gotten around to setting this up with a proper go-gettable url, so for now, you have to do custom stuff to install it.
-
-1- clone repo to $GOPATH/src/is-a-dev.com/autoapi
-2- inside that dir, run go get.
-3- same dir, run go install
-
+    go get is-a-dev.com/autoapi
 
 Usage
 =====
