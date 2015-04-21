@@ -12,7 +12,7 @@ type tableColumn struct {
 }
 
 func (t tableColumn) CapitalizedColumnName() string {
-	var result string = ""
+	var result string
 	for _, tp := range strings.Split(t.ColumnName, "_") {
 		tp = strings.ToUpper(tp[0:1]) + strings.ToLower(tp[1:])
 		result = result + tp
@@ -24,23 +24,23 @@ func (t tableColumn) LowercaseColumnName() string {
 	return strings.ToLower(t.ColumnName)
 }
 
-func (tc tableColumn) SwaggerColumnType() string {
-	ct := tc.MappedColumnType()
+func (t tableColumn) SwaggerColumnType() string {
+	ct := t.MappedColumnType()
 	if strings.Contains(ct, "int") {
 		return "integer"
 	}
 	if strings.Contains(ct, "float") {
 		return "number"
 	}
-	if strings.Contains(tc.ColumnType, "bit") {
+	if strings.Contains(t.ColumnType, "bit") {
 		return "boolean"
 	}
 
 	return "string"
 }
 
-func (tc tableColumn) SwaggerFormat() string {
-	ct := tc.MappedColumnType()
+func (t tableColumn) SwaggerFormat() string {
+	ct := t.MappedColumnType()
 	if strings.Contains(ct, "int") {
 		return ct
 	}
@@ -58,15 +58,15 @@ func (tc tableColumn) SwaggerFormat() string {
 		return "date"
 	}
 
-	if strings.Contains(tc.ColumnName, "password") {
+	if strings.Contains(t.ColumnName, "password") {
 		return "password"
 	}
 
 	return ""
 }
 
-func (tc tableColumn) MappedColumnType() string {
-	switch tc.ColumnType {
+func (t tableColumn) MappedColumnType() string {
+	switch t.ColumnType {
 	case "blob", "tinyblob", "mediumblob", "longblob",
 		"binary", "varbinary", "bit", "set", "enum":
 		return "[]byte"
@@ -106,8 +106,8 @@ func (tc tableColumn) MappedColumnType() string {
 	return "interface{}"
 }
 
-func (tc tableColumn) ColumnNullValue() string {
-	switch tc.ColumnType {
+func (t tableColumn) ColumnNullValue() string {
+	switch t.ColumnType {
 	case "blob", "tinyblob", "mediumblob", "longblob",
 		"binary", "varbinary", "bit", "set", "enum":
 		return "nil"
@@ -126,8 +126,8 @@ func (tc tableColumn) ColumnNullValue() string {
 	return "nil"
 }
 
-func (tc tableColumn) NullCheck(varname string) string {
-	switch tc.ColumnType {
+func (t tableColumn) NullCheck(varname string) string {
+	switch t.ColumnType {
 	case "blob", "tinyblob", "mediumblob", "longblob",
 		"binary", "varbinary", "bit", "set", "enum":
 

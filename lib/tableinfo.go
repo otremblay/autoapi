@@ -26,7 +26,7 @@ func (t tableInfo) CamelCaseTableName() string {
 }
 
 func (t tableInfo) NormalizedTableName() string {
-	var result string = ""
+	var result string
 	for _, tp := range strings.Split(t.TableName, "_") {
 		tp = strings.ToUpper(tp[0:1]) + strings.ToLower(tp[1:])
 		tp = strings.TrimSuffix(tp, "s")

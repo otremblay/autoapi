@@ -10,27 +10,31 @@ import (
 	"strings"
 )
 
+//DB is just an interface expression of what this package cares about
+//when invoking sql.DB.
 type DB interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	Query(query string, args ...interface{}) (*sql.Rows, error)
 	QueryRow(query string, args ...interface{}) *sql.Row
 }
 
+//Error takes a string and makes an error with it. I now know that fmt.Errorf exists for this purpose and am sorry.
+//TODO: Remove every instance of this and replace with fmt.Errorf.
 func Error(msg string) error {
 	return errors.New(msg)
 }
 
 func getTableInfo(db *sql.DB, dbName string) (map[string]tableInfo, error) {
 
-	more_rows, err := db.Query("select table_name, column_name, data_type, column_key, is_nullable, extra, column_type from information_schema.columns where table_schema = ?", dbName)
+	moreRows, err := db.Query("select table_name, column_name, data_type, column_key, is_nullable, extra, column_type from information_schema.columns where table_schema = ?", dbName)
 
 	if err != nil {
 		return nil, err
 	}
 	tables := map[string]tableInfo{}
-	for more_rows.Next() {
+	for moreRows.Next() {
 		var tn, cn, ct, ck, nullable, extra, cdt string
-		err := more_rows.Scan(&tn, &cn, &ct, &ck, &nullable, &extra, &cdt)
+		err := moreRows.Scan(&tn, &cn, &ct, &ck, &nullable, &extra, &cdt)
 		if err != nil {
 			return nil, err
 		}
@@ -61,6 +65,7 @@ func getTableInfo(db *sql.DB, dbName string) (map[string]tableInfo, error) {
 	return tables, nil
 }
 
+//Generate grabs a sql connection, a database name, and generate all the required code to talk to the db.
 func Generate(db *sql.DB, dbName string) error {
 	tables, err := getTableInfo(db, dbName)
 	if err != nil {
@@ -103,7 +108,7 @@ func Generate(db *sql.DB, dbName string) error {
 func codeChecksum(tables map[string]tableInfo) []byte {
 	checksum := md5.New()
 	keys := []string{}
-	for k, _ := range tables {
+	for k := range tables {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
@@ -111,7 +116,7 @@ func codeChecksum(tables map[string]tableInfo) []byte {
 		table := tables[k]
 		checksum.Write([]byte(table.TableName))
 		tckeys := []string{}
-		for tck, _ := range table.TableColumns {
+		for tck := range table.TableColumns {
 			tckeys = append(tckeys, tck)
 		}
 		sort.Strings(tckeys)
@@ -123,6 +128,7 @@ func codeChecksum(tables map[string]tableInfo) []byte {
 	return checksum.Sum(nil)
 }
 
+//DatabaseChecksum grabs a databases's information and runs a checksum on the database schema. Can be used to compare against a checksum we provide in the generated code.
 func DatabaseChecksum(db *sql.DB, dbName string) ([]byte, error) {
 	ti, err := getTableInfo(db, dbName)
 	if err != nil {
@@ -130,6 +136,8 @@ func DatabaseChecksum(db *sql.DB, dbName string) ([]byte, error) {
 	}
 	return codeChecksum(ti), nil
 }
+
+//GetRootPath gives the path to the current package. Oh, btw, if you run autoapi out of $GOPATH, autoapi will yell at you.
 func GetRootPath() (string, error) {
 	pathsplosion, err := os.Getwd()
 	if err != nil {
