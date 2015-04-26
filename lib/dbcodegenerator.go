@@ -117,7 +117,7 @@ func DeleteBy{{.Table.PrimaryColumnsJoinedByAnd}}({{.Table.PrimaryColumnsParamLi
 {{end}}
 
 func Save(row *dbi.{{.Table.NormalizedTableName}}) error {
-    {{range .Table.Constraints}}{{.}}{{end}}
+    {{range .Table.Constraints}}{{.}};{{end}}
     _, err := DB.Exec("INSERT {{.Table.TableName}} VALUES({{.Table.QueryValuesSection}}) ON DUPLICATE KEY UPDATE {{.Table.UpsertDuplicate}}", 
         {{range .Table.ColOrder}}row.{{.CapitalizedColumnName}},
 {{end}})

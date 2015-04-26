@@ -68,7 +68,7 @@ func (t tableColumn) SwaggerFormat() string {
 func (t tableColumn) MappedColumnType() string {
 	switch t.ColumnType {
 	case "blob", "tinyblob", "mediumblob", "longblob",
-		"binary", "varbinary", "bit", "set", "enum":
+		"binary", "varbinary", "set", "enum":
 		return "[]byte"
 	case "text", "tinytext", "mediumtext", "longtext", "char", "varchar":
 		return "string"
@@ -100,6 +100,8 @@ func (t tableColumn) MappedColumnType() string {
 		return "float32"
 	case "decimal", "double":
 		return "float64"
+	case "bit":
+		return "bool"
 
 	}
 
@@ -109,7 +111,7 @@ func (t tableColumn) MappedColumnType() string {
 func (t tableColumn) ColumnNullValue() string {
 	switch t.ColumnType {
 	case "blob", "tinyblob", "mediumblob", "longblob",
-		"binary", "varbinary", "bit", "set", "enum":
+		"binary", "varbinary", "set", "enum":
 		return "nil"
 	case "char", "varchar", "text", "tinytext", "mediumtext", "longtext":
 		return `""`
@@ -121,6 +123,8 @@ func (t tableColumn) ColumnNullValue() string {
 		return "nil"
 	case "datetime", "timestamp":
 		return "nil"
+	case "bit":
+		return "false"
 	}
 
 	return "nil"
@@ -129,7 +133,7 @@ func (t tableColumn) ColumnNullValue() string {
 func (t tableColumn) NullCheck(varname string) string {
 	switch t.ColumnType {
 	case "blob", "tinyblob", "mediumblob", "longblob",
-		"binary", "varbinary", "bit", "set", "enum":
+		"binary", "varbinary", "set", "enum":
 
 		return fmt.Sprintf("%s != nil", varname)
 	case "text", "tinytext", "mediumtext", "longtext",

@@ -1,9 +1,11 @@
 package lib
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
+	"text/template"
 )
 
 type swaggerGenerator struct{}
@@ -118,14 +120,33 @@ func (sg *swaggerGenerator) Generate(tables map[string]tableInfo) error {
 	}
 	swaggermap["paths"] = paths
 	swaggermap["definitions"] = definitions
-	f, err := os.Create("bin/swagger.json")
+	f, err := os.Create("bin/swagger.json.go")
 	if err != nil {
 		return err
 	}
-	enc := json.NewEncoder(f)
+
+	var x bytes.Buffer
+	enc := json.NewEncoder(&x)
 	err = enc.Encode(swaggermap)
 	if err != nil {
 		return err
 	}
+
+	var tmpl, _ = template.New("swagga").Parse(swag)
+	b, _ := json.Marshal(swaggermap)
+	tmpl.Execute(f, string(b))
+
 	return nil
 }
+
+var swag = `package main
+
+import (
+"net/http"
+"fmt"
+)
+var js = ` + "`{{.}}`" + `
+
+func swaggerresponse(res http.ResponseWriter, req *http.Request){
+fmt.Fprint(res, js)
+}`

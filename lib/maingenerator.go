@@ -25,6 +25,7 @@ import({{$rootHandlersPackageName := .rootHandlersPackageName}}{{$rootdbpackagen
 {{.TableName}}db "{{$rootdbpackagename}}/{{.TableName}}"
 {{end}}
 "{{$rootdbpackagename}}"
+"{{.checksum}}"
 "net/http"
 	"github.com/gorilla/mux"
 "os"
@@ -63,6 +64,8 @@ d.HandleFunc("/{{.TableName}}/{id}", {{.TableName}}.Delete)
 
 {{end}}
 
+g.HandleFunc("/swagger.json", swaggerresponse)
+
 http.ListenAndServe(":8080",r)
 }
 `))
@@ -72,7 +75,7 @@ http.ListenAndServe(":8080",r)
 	if err != nil {
 		return err
 	}
-	err = importstmpl.Execute(&b, map[string]interface{}{"rootHandlersPackageName": path + "/http", "Tables": tables, "rootdbpackagename": path + "/" + rootdbpath})
+	err = importstmpl.Execute(&b, map[string]interface{}{"rootHandlersPackageName": path + "/http", "Tables": tables, "rootdbpackagename": path + "/" + rootdbpath, "checksum": path + "/db"})
 	if err != nil {
 		fmt.Println(b.String())
 		fmt.Println(err)

@@ -34,9 +34,12 @@ func ValidateChecksum(db *sql.DB, dbName string) error {
      if err != nil {
          return err
      }
-     if fmt.Sprintf("%x", b) != Checksum() {
-        return ErrBadDatabaseChecksum
-     }
+
+	if fmt.Sprintf("%x", b) != Checksum() {
+		fmt.Println(fmt.Sprintf("%x", b))
+		fmt.Println(Checksum())
+		return ErrBadDatabaseChecksum
+	}
      return nil
 }
 

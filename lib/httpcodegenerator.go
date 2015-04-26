@@ -69,7 +69,11 @@ func Get(res http.ResponseWriter, req *http.Request){
 {{end}}
 
 func Post(res http.ResponseWriter, req *http.Request){
-    save(req)
+    err := save(req)
+    if err != nil {
+        res.WriteHeader(500)
+        fmt.Fprint(res, err)
+    }
 }
 {{if gt $l 0}}
 func Put(res http.ResponseWriter, req *http.Request){
@@ -88,7 +92,11 @@ func Put(res http.ResponseWriter, req *http.Request){
         fmt.Fprintln(res, get_err)
         return
     }
-    save(req)
+    err = save(req)
+    if err != nil {
+        res.WriteHeader(500)
+        fmt.Fprint(res, err)
+    }
 }
 {{end}}
 func save(req *http.Request) error {
