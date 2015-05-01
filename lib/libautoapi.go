@@ -87,19 +87,20 @@ func Generate(db *sql.DB, dbName string) error {
 		fmt.Println("failed generating http code")
 		return err
 	}
-	err = (&mainGenerator{}).Generate(tables)
-	if err != nil {
-		fmt.Println("failed generating maincode")
-		return err
-	}
+
 	err = (&checksumGenerator{}).Generate(tables)
 	if err != nil {
 		fmt.Println("failed generating checksumcode")
 		return err
 	}
-	err = (&swaggerGenerator{}).Generate(tables)
+	err = (&swaggerGenerator{dbName}).Generate(tables)
 	if err != nil {
 		fmt.Println("failed generating swagger json")
+		return err
+	}
+	err = (&mainGenerator{}).Generate(tables)
+	if err != nil {
+		fmt.Println("failed generating maincode")
 		return err
 	}
 	return nil

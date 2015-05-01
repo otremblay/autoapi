@@ -30,14 +30,20 @@ import({{$rootHandlersPackageName := .rootHandlersPackageName}}{{$rootdbpackagen
 	"github.com/gorilla/mux"
 "os"
 "database/sql"
+"github.com/howeyc/gopass"
 	_ "github.com/ziutek/mymysql/godrv"
 )
 `))
 	importstmpl = importstmpl
 	routestmpl := template.Must(template.New("mainRoutes").Parse(`
 func main(){
-	dbUrl := os.Args[1]
-    	dbconn, err := sql.Open("mymysql", dbUrl)
+	dbHost := os.Args[1]
+	dbName := os.Args[2]
+	dbUname := os.Args[3]
+
+	fmt.Print("Password:")
+	pass := strings.TrimSpace(string(gopass.GetPasswdMasked()))
+	db, err := sql.Open("mymysql", fmt.Sprintf("tcp:%s:3306*%s/%s/%s", dbHost, dbName, dbUname, pass))
 	if err != nil {
 		panic(err)
 	}

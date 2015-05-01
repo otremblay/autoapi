@@ -2,17 +2,24 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
+	"strings"
 
 	"is-a-dev.com/autoapi/lib"
 
+	"github.com/howeyc/gopass"
 	_ "github.com/ziutek/mymysql/godrv"
 )
 
 func main() {
-	dbUrl := os.Args[1]
+	dbHost := os.Args[1]
 	dbName := os.Args[2]
-	db, err := sql.Open("mymysql", dbUrl)
+	dbUname := os.Args[3]
+
+	fmt.Print("Password:")
+	pass := strings.TrimSpace(string(gopass.GetPasswdMasked()))
+	db, err := sql.Open("mymysql", fmt.Sprintf("tcp:%s:3306*%s/%s/%s", dbHost, dbName, dbUname, pass))
 	if err != nil {
 		panic(err)
 	}

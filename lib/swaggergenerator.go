@@ -8,12 +8,13 @@ import (
 	"text/template"
 )
 
-type swaggerGenerator struct{}
+type swaggerGenerator struct{ dbname string }
 
 type msi map[string]interface{}
 
 func (sg *swaggerGenerator) Generate(tables map[string]tableInfo) error {
-	dbname := os.Args[2]
+	dbname := sg.dbname
+
 	swaggermap := msi{
 		"swagger": "2.0",
 		"info": msi{
