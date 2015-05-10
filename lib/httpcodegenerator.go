@@ -39,6 +39,30 @@ dbi "{{.dbiroot}}/{{.Table.TableName}}"
 
 func List(res http.ResponseWriter, req *http.Request){
     enc := json.NewEncoder(res)
+    
+    shouldFilter := false
+    filterObject := &dbi.{{.Table.NormalizedTableName}}{}
+    req.ParseForm()
+    if len(req.Form) > 0 {
+        {{range .Table.ColOrder}}
+        if _, ok := req.Form["{{.LowercaseColumnName}}"]; ok {
+            {{.LowercaseColumnName}} := req.FormValue("{{.LowercaseColumnName}}")
+            shouldFilter = true
+            {{.TextRightHandConvert}}
+            filterObject.{{.CapitalizedColumnName}} = parsedField 
+        }
+        {{end}}
+    }
+
+    if shouldFilter {
+        rows, err := {{.Table.TableName}}.Find(filterObject)
+        if err != nil {
+            log.Println(err)
+        }
+        enc.Encode(rows)
+        return
+    }
+
     rows, err := {{.Table.TableName}}.All()
     if err != nil {
         log.Println(err)
@@ -77,6 +101,7 @@ func Post(res http.ResponseWriter, req *http.Request){
 }
 {{if gt $l 0}}
 func Put(res http.ResponseWriter, req *http.Request){
+    var err error
     vars := mux.Vars(req)
     {{if gt $l 1}}
         id_slice := strings.Split(vars["id"])

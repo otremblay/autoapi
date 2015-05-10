@@ -9,6 +9,7 @@ type tableColumn struct {
 	ColumnName string
 	ColumnType string
 	Primary    bool
+	Nullable   bool
 }
 
 func (t tableColumn) CapitalizedColumnName() string {
@@ -20,20 +21,34 @@ func (t tableColumn) CapitalizedColumnName() string {
 	return result
 }
 
+func (t tableColumn) TextRightHandConvert() string {
+	switch t.MappedColumnType() {
+	case "int", "uint8", "int8", "uint16", "int16", "uint32", "int32", "uint64", "int64":
+		return "i, _ := strconv.Atoi(" + t.LowercaseColumnName() + "); parsedField := " + t.MappedColumnType() + "(i)"
+	case "[]byte":
+		return "parsedField:= []byte(" + t.LowercaseColumnName() + ")"
+	case "bool":
+		return "parsedField, _ := strconv.ParseBool(" + t.LowercaseColumnName() + ")"
+	default:
+		return "parsedField:= " + t.LowercaseColumnName()
+	}
+}
+
 func (t tableColumn) LowercaseColumnName() string {
 	return strings.ToLower(t.ColumnName)
 }
 
 func (t tableColumn) SwaggerColumnType() string {
 	ct := t.MappedColumnType()
+
+	if strings.Contains(t.ColumnType, "bit") || strings.Contains(t.ColumnType, "tinyint") {
+		return "boolean"
+	}
 	if strings.Contains(ct, "int") {
 		return "integer"
 	}
 	if strings.Contains(ct, "float") {
 		return "number"
-	}
-	if strings.Contains(t.ColumnType, "bit") {
-		return "boolean"
 	}
 
 	return "string"
@@ -44,6 +59,7 @@ func (t tableColumn) SwaggerFormat() string {
 	if strings.Contains(ct, "int") {
 		return ct
 	}
+
 	if strings.Contains(ct, "float") {
 		return "float"
 	}
@@ -72,8 +88,8 @@ func (t tableColumn) MappedColumnType() string {
 		return "[]byte"
 	case "text", "tinytext", "mediumtext", "longtext", "char", "varchar":
 		return "string"
-	case "tinyint":
-		return "int8"
+		//	case "tinyint":
+		//		return "int8"
 	case "utinyint":
 		return "uint8"
 	case "smallint":
@@ -100,7 +116,7 @@ func (t tableColumn) MappedColumnType() string {
 		return "float32"
 	case "decimal", "double":
 		return "float64"
-	case "bit":
+	case "bit", "tinyint":
 		return "bool"
 
 	}
@@ -115,7 +131,7 @@ func (t tableColumn) ColumnNullValue() string {
 		return "nil"
 	case "char", "varchar", "text", "tinytext", "mediumtext", "longtext":
 		return `""`
-	case "tinyint", "utinyint", "smallint", "usmallint", "mediumint", "int", "umediumint", "uint", "bigint", "ubigint", "year", "float", "double", "decimal":
+	case "utinyint", "smallint", "usmallint", "mediumint", "int", "umediumint", "uint", "bigint", "ubigint", "year", "float", "double", "decimal":
 		return "0"
 	case "time":
 		return "nil"
@@ -123,7 +139,7 @@ func (t tableColumn) ColumnNullValue() string {
 		return "nil"
 	case "datetime", "timestamp":
 		return "nil"
-	case "bit":
+	case "bit", "tinyint":
 		return "false"
 	}
 
@@ -140,7 +156,7 @@ func (t tableColumn) NullCheck(varname string) string {
 		"char", "varchar":
 		return fmt.Sprintf(`%s != ""`, varname)
 
-	case "tinyint", "utinyint", "smallint", "usmallint", "mediumint", "int", "umediumint", "uint", "bigint", "ubigint", "year", "float", "decimal", "double", "time":
+	case "utinyint", "smallint", "usmallint", "mediumint", "int", "umediumint", "uint", "bigint", "ubigint", "year", "float", "decimal", "double", "time":
 		return fmt.Sprintf("%s != 0", varname)
 	case "date", "datetime", "timestamp":
 		return fmt.Sprintf("!%s.IsZero()", varname)

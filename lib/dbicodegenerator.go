@@ -38,7 +38,7 @@ type {{.NormalizedTableName}}er interface {
 }
 
 type {{.NormalizedTableName}} struct {
-{{range .ColOrder}}{{.CapitalizedColumnName}} {{.MappedColumnType}}
+{{range .ColOrder}}{{.CapitalizedColumnName}} {{.MappedColumnType}} ` + "`json:\"{{.ColumnName}}\"`" + `
 {{end}}}
 
 func New() *{{.NormalizedTableName}}{

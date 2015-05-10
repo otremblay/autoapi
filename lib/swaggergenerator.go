@@ -59,7 +59,7 @@ func (sg *swaggerGenerator) Generate(tables map[string]tableInfo) error {
 			props[c.LowercaseColumnName()] = prop
 		}
 
-		definitions[t.NormalizedTableName()] = def
+		definitions[t.TableName] = def
 		request := msi{}
 		request["get"] = msi{
 			"produces": produces,
@@ -121,6 +121,7 @@ func (sg *swaggerGenerator) Generate(tables map[string]tableInfo) error {
 	}
 	swaggermap["paths"] = paths
 	swaggermap["definitions"] = definitions
+	os.MkdirAll("bin", 0755)
 	f, err := os.Create("bin/swagger.json.go")
 	if err != nil {
 		return err

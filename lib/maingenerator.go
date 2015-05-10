@@ -43,7 +43,7 @@ func main(){
 
 	fmt.Print("Password:")
 	pass := strings.TrimSpace(string(gopass.GetPasswdMasked()))
-	db, err := sql.Open("mymysql", fmt.Sprintf("tcp:%s:3306*%s/%s/%s", dbHost, dbName, dbUname, pass))
+	dbconn, err := sql.Open("mymysql", fmt.Sprintf("tcp:%s:3306*%s/%s/%s", dbHost, dbName, dbUname, pass))
 	if err != nil {
 		panic(err)
 	}
