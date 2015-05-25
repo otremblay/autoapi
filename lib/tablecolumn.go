@@ -24,13 +24,13 @@ func (t tableColumn) CapitalizedColumnName() string {
 func (t tableColumn) TextRightHandConvert() string {
 	switch t.MappedColumnType() {
 	case "int", "uint8", "int8", "uint16", "int16", "uint32", "int32", "uint64", "int64":
-		return "i, _ := strconv.Atoi(" + t.LowercaseColumnName() + "); parsedField := " + t.MappedColumnType() + "(i)"
+		return "i, _ := strconv.Atoi(form_" + t.LowercaseColumnName() + "); parsedField := " + t.MappedColumnType() + "(i)"
 	case "[]byte":
-		return "parsedField:= []byte(" + t.LowercaseColumnName() + ")"
+		return "parsedField:= []byte(form_" + t.LowercaseColumnName() + ")"
 	case "bool":
-		return "parsedField, _ := strconv.ParseBool(" + t.LowercaseColumnName() + ")"
+		return "parsedField, _ := strconv.ParseBool(form_" + t.LowercaseColumnName() + ")"
 	default:
-		return "parsedField:= " + t.LowercaseColumnName()
+		return "parsedField:= form_" + t.LowercaseColumnName()
 	}
 }
 

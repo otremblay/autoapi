@@ -46,7 +46,7 @@ func List(res http.ResponseWriter, req *http.Request){
     if len(req.Form) > 0 {
         {{range .Table.ColOrder}}
         if _, ok := req.Form["{{.LowercaseColumnName}}"]; ok {
-            {{.LowercaseColumnName}} := req.FormValue("{{.LowercaseColumnName}}")
+            form_{{.LowercaseColumnName}} := req.FormValue("{{.LowercaseColumnName}}")
             shouldFilter = true
             {{.TextRightHandConvert}}
             filterObject.{{.CapitalizedColumnName}} = parsedField 
