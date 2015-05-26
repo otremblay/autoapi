@@ -25,6 +25,10 @@ func (t tableColumn) TextRightHandConvert() string {
 	switch t.MappedColumnType() {
 	case "int", "uint8", "int8", "uint16", "int16", "uint32", "int32", "uint64", "int64":
 		return "i, _ := strconv.Atoi(form_" + t.LowercaseColumnName() + "); parsedField := " + t.MappedColumnType() + "(i)"
+	case "float32":
+		return "i, _ := strconv.ParseFloat(form_" + t.LowercaseColumnName() + ", 32); parseField := " + t.MappedColumnType() + "(i)"
+	case "float64":
+		return "i, _ := strconv.ParseFloat(form_" + t.LowercaseColumnName() + ", 64); parseField := " + t.MappedColumnType() + "(i)"
 	case "[]byte":
 		return "parsedField:= []byte(form_" + t.LowercaseColumnName() + ")"
 	case "bool":
