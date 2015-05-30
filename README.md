@@ -45,7 +45,7 @@ $GOPATH/src/whatever/
 ## Starting the API
 From your project root:
 ```bash
-go run bin/main.go
+go run bin/main.go -d="DB_NAME" -u="root" -h="localhost" -P="3306"
 ```
 Your api will now be runnning on: http://localhost:8080 (by default)
 
@@ -53,6 +53,8 @@ Your api will now be runnning on: http://localhost:8080 (by default)
 
 * How to change the port and host
 * Other amazing features
+
+##### # TODO Configurable all the things
 
 ## Working with your new project
 
