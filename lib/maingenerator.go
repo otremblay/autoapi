@@ -36,20 +36,64 @@ import({{$rootHandlersPackageName := .rootHandlersPackageName}}{{$rootdbpackagen
 `))
 	importstmpl = importstmpl
 	routestmpl := template.Must(template.New("mainRoutes").Parse(`
-func main(){
-	dbHost := os.Args[1]
-	dbName := os.Args[2]
-	dbUname := os.Args[3]
+const (
+	// Ugly way to check to see if they passed in a password
+	// chance of collision with a GUID is very low
+	defaultPassValue = "5e7dc6f6a1a94c39be95b88a47c2458b"
+)
 
-	fmt.Print("Password:")
-	pass := strings.TrimSpace(string(gopass.GetPasswdMasked()))
-	dbconn, err := sql.Open("mymysql", fmt.Sprintf("tcp:%s:3306*%s/%s/%s", dbHost, dbName, dbUname, pass))
+var (
+	dbPort  string
+	dbHost  string
+	dbName  string
+	dbUname string
+	dbPass  string
+)
+
+func init() {
+	flag.StringVar(&dbPort, "P", "3306", "port")
+	flag.StringVar(&dbPass, "p", defaultPassValue, "password")
+	flag.StringVar(&dbHost, "h", "localhost", "host")
+	flag.StringVar(&dbName, "d", "", "database name")
+	flag.StringVar(&dbUname, "u", "root", "username")
+	flag.Parse()
+}
+
+func main(){
+	pass := dbPass
+	if pass == defaultPassValue {
+		fmt.Print("Password:")
+		pass = strings.TrimSpace(string(gopass.GetPasswdMasked()))
+	}
+
+	if strings.TrimSpace(dbPort) == "" {
+		fmt.Println("Missing port")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+	if strings.TrimSpace(dbHost) == "" {
+		fmt.Println("Missing host")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+	if strings.TrimSpace(dbName) == "" {
+		fmt.Println("Missing database name")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+	if strings.TrimSpace(dbUname) == "" {
+		fmt.Println("Missing username")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+	
+	dbConn, err := sql.Open("mymysql", fmt.Sprintf("tcp:%s:3306*%s/%s/%s", dbHost, dbName, dbUname, pass))
 	if err != nil {
 		panic(err)
 	}
-    db.MustValidateChecksum(dbconn, os.Args[2])
+    db.MustValidateChecksum(dbConn, dbName)
     {{range .Tables}}
-    {{.TableName}}db.DB = dbconn
+    {{.TableName}}db.DB = dbConn
     {{end}}
     r := mux.NewRouter()
     g := r.Methods("GET").Subrouter()

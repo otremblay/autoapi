@@ -75,4 +75,4 @@ Your api will now be runnning on: http://localhost:8080 (by default)
 
 ## Contributors
 * [Olivier Tremblay](https://git.is-a-dev.com/otremblay)
-* [Colin Gagnon](ttps://github.com/colingagnon)
+* [Colin Gagnon](https://github.com/colingagnon)
