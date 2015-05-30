@@ -55,7 +55,7 @@ func getTableInfo(db *sql.DB, dbName string) (map[string]tableInfo, error) {
 		col := tableColumn{ColumnName: cn, ColumnType: ct}
 
 		col.Primary = ck == "PRI"
-		if nullable == "NO" && extra != "auto_increment" && ct != "timestamp" && ct != "bit" {
+		if nullable == "NO" && extra != "auto_increment" && ct != "bit" {
 			table.Constraints = append(table.Constraints, fmt.Sprintf(`if row.%s == %s {return lib.Error("Preconditions failed, %s must be set.")}`, col.CapitalizedColumnName(), col.ColumnNullValue(), col.CapitalizedColumnName()))
 		}
 		table.TableColumns[cn] = col

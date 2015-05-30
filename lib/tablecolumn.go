@@ -113,7 +113,7 @@ func (t tableColumn) MappedColumnType() string {
 	case "time":
 		return "time.Duration"
 	case "date":
-		return "mysql.Date"
+		return "time.Time"
 	case "datetime", "timestamp":
 		return "time.Time"
 	case "float":
@@ -139,10 +139,8 @@ func (t tableColumn) ColumnNullValue() string {
 		return "0"
 	case "time":
 		return "nil"
-	case "date":
-		return "nil"
-	case "datetime", "timestamp":
-		return "nil"
+	case "datetime", "timestamp", "date":
+		return "time.IsZero()"
 	case "bit", "tinyint":
 		return "false"
 	}
