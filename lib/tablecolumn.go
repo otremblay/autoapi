@@ -26,13 +26,15 @@ func (t tableColumn) TextRightHandConvert() string {
 	case "int", "uint8", "int8", "uint16", "int16", "uint32", "int32", "uint64", "int64":
 		return "i, _ := strconv.Atoi(form_" + t.LowercaseColumnName() + "); parsedField := " + t.MappedColumnType() + "(i)"
 	case "float32":
-		return "i, _ := strconv.ParseFloat(form_" + t.LowercaseColumnName() + ", 32); parseField := " + t.MappedColumnType() + "(i)"
+		return "i, _ := strconv.ParseFloat(form_" + t.LowercaseColumnName() + ", 32); parsedField := " + t.MappedColumnType() + "(i)"
 	case "float64":
-		return "i, _ := strconv.ParseFloat(form_" + t.LowercaseColumnName() + ", 64); parseField := " + t.MappedColumnType() + "(i)"
+		return "i, _ := strconv.ParseFloat(form_" + t.LowercaseColumnName() + ", 64); parsedField := " + t.MappedColumnType() + "(i)"
 	case "[]byte":
 		return "parsedField:= []byte(form_" + t.LowercaseColumnName() + ")"
 	case "bool":
 		return "parsedField, _ := strconv.ParseBool(form_" + t.LowercaseColumnName() + ")"
+	case "date", "datetime", "timestamp":
+		return `parsedField, _ := time.Parse("")`
 	default:
 		return "parsedField:= form_" + t.LowercaseColumnName()
 	}
@@ -153,15 +155,15 @@ func (t tableColumn) NullCheck(varname string) string {
 	case "blob", "tinyblob", "mediumblob", "longblob",
 		"binary", "varbinary", "set", "enum":
 
-		return fmt.Sprintf("%s != nil", varname)
+		return fmt.Sprintf("%s == nil", varname)
 	case "text", "tinytext", "mediumtext", "longtext",
 		"char", "varchar":
-		return fmt.Sprintf(`%s != ""`, varname)
+		return fmt.Sprintf(`%s == ""`, varname)
 
 	case "utinyint", "smallint", "usmallint", "mediumint", "int", "umediumint", "uint", "bigint", "ubigint", "year", "float", "decimal", "double", "time":
-		return fmt.Sprintf("%s != 0", varname)
+		return fmt.Sprintf("%s == 0", varname)
 	case "date", "datetime", "timestamp":
-		return fmt.Sprintf("!%s.IsZero()", varname)
+		return fmt.Sprintf("%s.IsZero()", varname)
 	}
 
 	return "false"
