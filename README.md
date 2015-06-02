@@ -1,44 +1,80 @@
-autoapi
-=======
+# AUTOAPI
 
 Automatic api generation from an SQL database, complete with http API endpoint scaffolding code and preconditions checking.
 
-
-Installation
-============
-
+---
 ## Prerequisites
 * go >= 1.3 (see http://golang.org/)
 * a mysql database
+* go package [gorrilla/mux](http://www.gorillatoolkit.org/pkg/mux); (Dependency to be removed by #12)
 
+```bash
+go get github.com/gorilla/mux
+```
 
-## Procedure
-    go get is-a-dev.com/autoapi
+## Installation
+```bash
+# Get package
+go get is-a-dev.com/autoapi
 
-Usage
-=====
+# See that it works (if your go env is setup properly)
+autoapi --help
+```
 
-    autoapi <dbhost> <dbname> <dbuser>
+---
+## Create a new API
+```bash
+cd $GOPATH/src
+mkdir autoapiapp && cd autoapiapp
+autoapi -d="DB_NAME" -u="root" -h="localhost" -P="3306"
+```
+Once this step is complete your directory should now look like:
+```
+$GOPATH/src/whatever/
+        bin/
+            main.go (Main application binary, run this to start it)
+        db/
+            /mysql
+                /DB_TABLES (Database queries themselves for mysql)
+        dbi/
+            /DB_TABLES
+        http/
+            /DB_TABLES
+```
 
-    dbhost:            ip or hostname
-    dbname: 		   your db name
-	dbuser:            database user that has access to read the information schema.
+## Starting the API
+From your project root:
+```bash
+go run bin/main.go -d="DB_NAME" -u="root" -h="localhost" -P="3306"
+```
+Your api will now be runnning on: http://localhost:8080 (by default)
 
-A tiny guide:
+## Additional Configuration
 
-cd in a new go project (empty dir under $GOPATH/src/wherever)
-autoapi <dbhost> <dbname> <dbuser>
-if everything went according to plan, your dir now looks like this:
+* How to change the port and host
+* Other amazing features
 
-    $GOPATH/src/whatever/
-    ├──bin/
-    │  └──main.go
-    ├──http/
-    │  └──several folders and/or depending on your db tables
-    ├──dbi/
-    │  └──several folders and/or depending on your db tables
-    └──db/
-       └──mysql/
-          └──several folders and/or depending on your db tables.
+##### # TODO Configurable all the things
 
-You can just do 'go run bin/main.go <dbhost> <dbname> <dbuser>' and you should have a shiny REST api boot up on port 8080!
+## Working with your new project
+
+##### # TODO need to write more guidelines and tips for how to use this for awesome things
+
+* It is a good idea to use the routes generated as the base for your project, and include them in new packages instead of modifying them directly.
+
+---
+## Project Roadmap
+
+* Finish constriant issues
+* Complete Swagger
+* Complete JSON-LD
+* Onwards to glory
+
+##### # TODO Need to add some more items here, not sure on priority
+
+## Contributing
+##### # TODO Need to write some guidelines you want for contributing to this project
+
+## Contributors
+* [Olivier Tremblay](https://git.is-a-dev.com/otremblay)
+* [Colin Gagnon](https://github.com/colingagnon)

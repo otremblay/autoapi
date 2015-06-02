@@ -65,12 +65,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	db, err := sql.Open("mymysql", fmt.Sprintf("tcp:%s:%s*%s/%s/%s", dbHost, dbPort, dbName, dbUname, pass))
+	dbConn, err := sql.Open("mymysql", fmt.Sprintf("tcp:%s:%s*%s/%s/%s", dbHost, dbPort, dbName, dbUname, pass))
 	if err != nil {
 		flag.PrintDefaults()
 		log.Panic(err)
 	}
-	err = lib.Generate(db, dbName)
+	err = lib.Generate(dbConn, dbName)
 	if err != nil {
 		log.Panic(err)
 	}
