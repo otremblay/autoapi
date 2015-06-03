@@ -33,8 +33,8 @@ func (t tableColumn) TextRightHandConvert() string {
 		return "parsedField:= []byte(form_" + t.LowercaseColumnName() + ")"
 	case "bool":
 		return "parsedField, _ := strconv.ParseBool(form_" + t.LowercaseColumnName() + ")"
-	case "date", "datetime", "timestamp":
-		return `parsedField, _ := time.Parse("")`
+	case "time.Time":
+		return `parsedField, _ := time.Parse("2006-01-02T15:04:05-07:00", form_` + t.LowercaseColumnName() + `)`
 	default:
 		return "parsedField:= form_" + t.LowercaseColumnName()
 	}
