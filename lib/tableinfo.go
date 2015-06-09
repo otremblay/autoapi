@@ -13,7 +13,7 @@ type tableInfo struct {
 }
 
 func (t tableInfo) QueryFieldNames() string {
-	return strings.Join(columnNames(t.ColOrder), ",")
+	return "`" + strings.Join(columnNames(t.ColOrder), "`,`") + "`"
 }
 
 func (t tableInfo) QueryValuesSection() string {
@@ -97,7 +97,7 @@ func (t tableInfo) PrimaryColumnsParamList() string {
 }
 
 func (t tableInfo) UpsertDuplicate() string {
-	return colformat(t.ColOrder, "%s = VALUES(%s)", ",", lcn, lcn)
+	return colformat(t.ColOrder, "`%s` = VALUES(`%s`)", ",", lcn, lcn)
 }
 
 func (t tableInfo) GenGetCache(tc []tableColumn) string {

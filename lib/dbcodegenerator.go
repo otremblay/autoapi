@@ -47,7 +47,7 @@ var cache = map{{range .Table.CacheablePrimaryColumns}}[{{.MappedColumnType}}]{{
 
 
 func FindWithWhere(where string, params ...interface{}) ([]*dbi.{{.Table.NormalizedTableName}}, error) {
-    rows, err := DB.Query("SELECT {{.Table.QueryFieldNames}} FROM {{.Table.TableName}} " + where, params...)
+    rows, err := DB.Query("SELECT {{.Table.QueryFieldNames}} FROM ` + "`{{.Table.TableName}}`" + ` " + where, params...)
     if err != nil {
         return nil,err
     }
@@ -74,7 +74,7 @@ func GetBy{{.Table.PrimaryColumnsJoinedByAnd}}({{.Table.PrimaryColumnsParamList}
       {{.Table.GenGetCache .CacheablePrimaryColumns}} 
     {{end}}
     row := &dbi.{{.Table.NormalizedTableName}}{}
-    err := DB.QueryRow("SELECT {{.Table.QueryFieldNames}} FROM {{.Table.TableName}} WHERE {{.Table.PrimaryWhere}}",
+    err := DB.QueryRow("SELECT {{.Table.QueryFieldNames}} FROM ` + "`{{.Table.TableName}}`" + `WHERE {{.Table.PrimaryWhere}}",
     {{range .Table.PrimaryColumns}}{{.LowercaseColumnName}},
     {{end}}).Scan(
         {{range .Table.ColOrder}}&row.{{.CapitalizedColumnName}},
@@ -106,7 +106,7 @@ if len(where)>0{
 {{if .Table.PrimaryColumns }}
 func DeleteBy{{.Table.PrimaryColumnsJoinedByAnd}}({{.Table.PrimaryColumnsParamList}}) (error) {
     //TODO: remove from cache.
-    _, err := DB.Exec("DELETE FROM {{.Table.TableName}} WHERE {{.Table.PrimaryWhere}}",
+    _, err := DB.Exec("DELETE FROM ` + "`{{.Table.TableName}}`" + ` WHERE {{.Table.PrimaryWhere}}",
     {{range .Table.PrimaryColumns}}{{.LowercaseColumnName}},
     {{end}})
     if err != nil {
@@ -118,7 +118,7 @@ func DeleteBy{{.Table.PrimaryColumnsJoinedByAnd}}({{.Table.PrimaryColumnsParamLi
 
 func Save(row *dbi.{{.Table.NormalizedTableName}}) error {
     {{range .Table.Constraints}}{{.}};{{end}}
-    _, err := DB.Exec("INSERT {{.Table.TableName}} VALUES({{.Table.QueryValuesSection}}) ON DUPLICATE KEY UPDATE {{.Table.UpsertDuplicate}}", 
+    _, err := DB.Exec("INSERT ` + "`{{.Table.TableName}}`" + ` VALUES({{.Table.QueryValuesSection}}) ON DUPLICATE KEY UPDATE {{.Table.UpsertDuplicate}}", 
         {{range .Table.ColOrder}}row.{{.CapitalizedColumnName}},
 {{end}})
     if err != nil {return err}
