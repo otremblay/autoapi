@@ -10,6 +10,7 @@ type tableInfo struct {
 	TableColumns map[string]tableColumn
 	ColOrder     []tableColumn
 	Constraints  []string
+	ForeignKeys  []fk
 }
 
 func (t tableInfo) QueryFieldNames() string {

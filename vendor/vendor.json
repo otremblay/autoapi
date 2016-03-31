@@ -1,0 +1,67 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "iIUYZyoanCQQTUaWsu8b+iOSPt4=",
+			"path": "github.com/gorilla/context",
+			"revision": "215affda49addc4c8ef7e2534915df2c8c35c6cd",
+			"revisionTime": "2014-12-17T08:02:51-08:00"
+		},
+		{
+			"checksumSHA1": "ATHl/KcmYOhmdeKcpTh7fb4chgI=",
+			"path": "github.com/gorilla/mux",
+			"revision": "e444e69cbd2e2e3e0749a2f3c717cec491552bbf",
+			"revisionTime": "2014-09-26T08:38:14-07:00"
+		},
+		{
+			"checksumSHA1": "80nVga2uz3iNqzG2fO8cmYLnnpI=",
+			"path": "github.com/howeyc/gopass",
+			"revision": "2c70fa70727c953c51695f800f25d6b44abb368e",
+			"revisionTime": "2015-02-07T14:50:41-06:00"
+		},
+		{
+			"checksumSHA1": "XShX/yQd/Ysu/xq3YBA3sNAHQC8=",
+			"path": "github.com/stretchr/testify/assert",
+			"revision": "2eaa4b48b8954bf871229043b8064ca156a542a5",
+			"revisionTime": "2014-12-22T10:16:26-07:00"
+		},
+		{
+			"checksumSHA1": "hC8jKFa8Lfk6t+3yHmyv5D8J0u0=",
+			"path": "github.com/ziutek/mymysql/godrv",
+			"revision": "261574e2f4a9d9d2d81a8f996105c8c835bfe19b",
+			"revisionTime": "2014-09-17T12:07:17+02:00"
+		},
+		{
+			"checksumSHA1": "cTkFK4vjRQNQTCPwBLCK1/IynXw=",
+			"path": "github.com/ziutek/mymysql/mysql",
+			"revision": "261574e2f4a9d9d2d81a8f996105c8c835bfe19b",
+			"revisionTime": "2014-09-17T12:07:17+02:00"
+		},
+		{
+			"checksumSHA1": "K7o/dxOfpEmF01boLkDKdx3qgQk=",
+			"path": "github.com/ziutek/mymysql/native",
+			"revision": "261574e2f4a9d9d2d81a8f996105c8c835bfe19b",
+			"revisionTime": "2014-09-17T12:07:17+02:00"
+		},
+		{
+			"checksumSHA1": "bA2gANkJBx2Br/p5GKYdhyGo3Pg=",
+			"path": "golang.org/x/crypto/ssh/terminal",
+			"revision": "c197bcf24cde29d3f73c7b4ac6fd41f4384e8af6",
+			"revisionTime": "2016-03-17T15:08:20-05:00"
+		},
+		{
+			"checksumSHA1": "UozwJCtg4ATQvolqbn8iblLjxqY=",
+			"path": "golang.org/x/tools/go/ast/astutil",
+			"revision": "21cc49bd030cf5c6ebaca2fa0e3323628efed6d8",
+			"revisionTime": "2016-03-21T20:42:17+01:00"
+		},
+		{
+			"checksumSHA1": "/kuZmP3tatGrYza14yqzPmuJQRI=",
+			"path": "golang.org/x/tools/imports",
+			"revision": "21cc49bd030cf5c6ebaca2fa0e3323628efed6d8",
+			"revisionTime": "2016-03-21T20:42:17+01:00"
+		}
+	],
+	"rootPath": "is-a-dev.com/autoapi"
+}

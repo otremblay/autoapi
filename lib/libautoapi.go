@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"sort"
 	"strings"
@@ -26,7 +27,7 @@ func Error(msg string) error {
 
 func getTableInfo(db *sql.DB, dbName string) (map[string]tableInfo, error) {
 
-	moreRows, err := db.Query("select table_name, column_name, data_type, column_key, is_nullable, extra, column_type from information_schema.columns where table_schema = ?", dbName)
+	moreRows, err := db.Query("select table_name, column_name, data_type, column_key, is_nullable, extra, column_type, column_default from information_schema.columns where table_schema = ?", dbName)
 
 	if err != nil {
 		return nil, err
@@ -34,7 +35,8 @@ func getTableInfo(db *sql.DB, dbName string) (map[string]tableInfo, error) {
 	tables := map[string]tableInfo{}
 	for moreRows.Next() {
 		var tn, cn, ct, ck, nullable, extra, cdt string
-		err := moreRows.Scan(&tn, &cn, &ct, &ck, &nullable, &extra, &cdt)
+		var cd sql.NullString
+		err := moreRows.Scan(&tn, &cn, &ct, &ck, &nullable, &extra, &cdt, &cd)
 		if err != nil {
 			return nil, err
 		}
@@ -46,6 +48,7 @@ func getTableInfo(db *sql.DB, dbName string) (map[string]tableInfo, error) {
 				TableColumns: map[string]tableColumn{},
 				ColOrder:     []tableColumn{},
 				Constraints:  []string{},
+				ForeignKeys:  []fk{},
 			}
 		}
 
@@ -55,14 +58,41 @@ func getTableInfo(db *sql.DB, dbName string) (map[string]tableInfo, error) {
 		col := tableColumn{ColumnName: cn, ColumnType: ct}
 
 		col.Primary = ck == "PRI"
-		if nullable == "NO" && extra != "auto_increment" && ct != "bit" {
+		if nullable == "NO" && extra != "auto_increment" && ct != "bit" && cd.Valid {
 			table.Constraints = append(table.Constraints, fmt.Sprintf(`if %s {return lib.Error("Preconditions failed, %s must be set.")}`, col.NullCheck(fmt.Sprintf("row.%s", col.CapitalizedColumnName())), col.CapitalizedColumnName()))
 		}
 		table.TableColumns[cn] = col
 		table.ColOrder = append(table.ColOrder, col)
 		tables[tn] = table
 	}
+
+	foreign_keys, err := db.Query("select k.table_name, k.column_name, k.referenced_table_name, k.referenced_column_name from information_schema.key_column_usage k inner join information_schema.table_constraints using(constraint_name) where k.table_schema = ? and constraint_type = 'FOREIGN KEY';", dbName)
+	if err == nil {
+		for foreign_keys.Next() {
+			var tn, cn, ftn, fcn string
+			err = foreign_keys.Scan(&tn, &cn, &ftn, &fcn)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			if table, ok := tables[tn]; ok {
+				table.ForeignKeys = append(table.ForeignKeys, fk{TableName: tn, FieldName: cn, ForeignTable: ftn, ForeignField: fcn})
+				tables[tn] = table
+			} else {
+				log.Println("Foreign keys: Table not found")
+			}
+		}
+	} else {
+		log.Println(err)
+	}
 	return tables, nil
+}
+
+type fk struct {
+	TableName    string
+	FieldName    string
+	ForeignTable string
+	ForeignField string
 }
 
 //Generate grabs a sql connection, a database name, and generate all the required code to talk to the db.

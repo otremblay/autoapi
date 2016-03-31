@@ -127,6 +127,10 @@ func Save(row *dbi.{{.Table.NormalizedTableName}}) error {
         {{end}}
     return nil
 }
+
+{{range .Table.ForeignKeys}}
+//{{.ForeignTable}}, {{.ForeignField}}
+{{end}}
 `))
 	path, err := GetRootPath()
 	if err != nil {
