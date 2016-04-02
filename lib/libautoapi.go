@@ -96,7 +96,7 @@ type fk struct {
 }
 
 //Generate grabs a sql connection, a database name, and generate all the required code to talk to the db.
-func Generate(db *sql.DB, dbName string) error {
+func Generate(db *sql.DB, dbName string, verbs string) error {
 	tables, err := getTableInfo(db, dbName)
 	if err != nil {
 		fmt.Println("failed getting table info")
@@ -112,7 +112,7 @@ func Generate(db *sql.DB, dbName string) error {
 		fmt.Println("failed generating db code")
 		return err
 	}
-	err = (&httpCodeGenerator{}).Generate(tables)
+	err = (&httpCodeGenerator{Verbs: verbs}).Generate(tables)
 	if err != nil {
 		fmt.Println("failed generating http code")
 		return err
@@ -128,7 +128,7 @@ func Generate(db *sql.DB, dbName string) error {
 		fmt.Println("failed generating swagger json")
 		return err
 	}
-	err = (&mainGenerator{}).Generate(tables)
+	err = (&mainGenerator{verbs: verbs}).Generate(tables)
 	if err != nil {
 		fmt.Println("failed generating maincode")
 		return err

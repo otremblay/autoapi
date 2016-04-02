@@ -26,14 +26,16 @@ var (
 	dbName  string
 	dbUname string
 	dbPass  string
+	verbs   string
 )
 
 func init() {
-	flag.StringVar(&dbPort, "P", "3306", "port")
-	flag.StringVar(&dbPass, "p", defaultPassValue, "password")
-	flag.StringVar(&dbHost, "h", "localhost", "host")
+	flag.StringVar(&dbPort, "P", "3306", "database port")
+	flag.StringVar(&dbPass, "p", defaultPassValue, "database password")
+	flag.StringVar(&dbHost, "h", "localhost", "database host")
 	flag.StringVar(&dbName, "d", "", "database name")
-	flag.StringVar(&dbUname, "u", "root", "username")
+	flag.StringVar(&dbUname, "u", "root", "database username")
+	flag.StringVar(&verbs, "v", "get", "HTTP verbs to handle.")
 	flag.Parse()
 }
 
@@ -70,8 +72,9 @@ func main() {
 		flag.PrintDefaults()
 		log.Panic(err)
 	}
-	err = lib.Generate(dbConn, dbName)
+	verbs = strings.ToLower(verbs)
+	err = lib.Generate(dbConn, dbName, verbs)
 	if err != nil {
-		log.Panic(err)
+		panic(err)
 	}
 }

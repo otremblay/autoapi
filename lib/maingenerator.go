@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io"
 	"os"
+	"strings"
 
 	"golang.org/x/tools/imports"
 )
@@ -14,6 +15,7 @@ import (
 type mainGenerator struct {
 	rootDbPackageName       string
 	rootHandlersPackageName string
+	verbs                   string
 }
 
 func (g *mainGenerator) Generate(tables map[string]tableInfo) error {
@@ -48,6 +50,7 @@ var (
 	dbName  string
 	dbUname string
 	dbPass  string
+	listenAddress string
 )
 
 func init() {
@@ -56,6 +59,7 @@ func init() {
 	flag.StringVar(&dbHost, "h", "localhost", "host")
 	flag.StringVar(&dbName, "d", "", "database name")
 	flag.StringVar(&dbUname, "u", "root", "username")
+	flag.StringVar(&listenAddress, "l", ":8080", "listening address")
 	flag.Parse()
 }
 
@@ -96,19 +100,40 @@ func main(){
     {{.TableName}}db.DB = dbConn
     {{end}}
     r := mux.NewRouter()
+{{$shouldGenerateGet := .shouldGenerateGet}}
+{{$shouldGeneratePost := .shouldGeneratePost}}
+{{$shouldGeneratePut := .shouldGeneratePut}}
+{{$shouldGenerateDelete := .shouldGenerateDelete}}
+{{if $shouldGenerateGet}}
     g := r.Methods("GET").Subrouter()
+{{end}}
+{{if $shouldGeneratePost}}
     po := r.Methods("POST").Subrouter()
+{{end}}
+{{if $shouldGeneratePut}}
     pu := r.Methods("PUT").Subrouter()
+{{end}}
+{{if $shouldGenerateDelete}}
     d := r.Methods("DELETE").Subrouter()
+{{end}}
 {{range .Tables}}
 {{$l := len .PrimaryColumns}}
-
+{{if $shouldGenerateGet}}
 g.HandleFunc("/{{.TableName}}", {{.TableName}}.List)
+{{end}}
+{{if $shouldGeneratePost}}
 po.HandleFunc("/{{.TableName}}", {{.TableName}}.Post)
+{{end}}
 {{if gt $l 0}}
+{{if $shouldGenerateGet}}
 g.HandleFunc("/{{.TableName}}/{id}", {{.TableName}}.Get)
+{{end}}
+{{if $shouldGeneratePut}}
 pu.HandleFunc("/{{.TableName}}/{id}", {{.TableName}}.Put)
+{{end}}
+{{if $shouldGenerateDelete}}
 d.HandleFunc("/{{.TableName}}/{id}", {{.TableName}}.Delete)
+{{end}}
 {{end}}
 
 
@@ -116,7 +141,7 @@ d.HandleFunc("/{{.TableName}}/{id}", {{.TableName}}.Delete)
 
 g.HandleFunc("/swagger.json", swaggerresponse)
 
-http.ListenAndServe(":8080",r)
+http.ListenAndServe(listenAddress,r)
 }
 `))
 	routestmpl = routestmpl
@@ -133,7 +158,15 @@ http.ListenAndServe(":8080",r)
 	var final bytes.Buffer
 	io.Copy(&final, &b)
 	b = bytes.Buffer{}
-	routestmpl.Execute(&b, map[string]interface{}{"Verbs": []string{"List", "Get", "Post", "Put", "Delete"}, "Tables": tables})
+	verbs := strings.Split(g.verbs, ",")
+	routestmpl.Execute(&b, map[string]interface{}{
+		"Verbs":                []string{"List", "Get", "Post", "Put", "Delete"},
+		"Tables":               tables,
+		"shouldGenerateGet":    stringInSlice("get", verbs),
+		"shouldGeneratePost":   stringInSlice("post", verbs),
+		"shouldGeneratePut":    stringInSlice("put", verbs),
+		"shouldGenerateDelete": stringInSlice("delete", verbs),
+	})
 	io.Copy(&final, &b)
 	f, err := os.Create("bin/main.go")
 	if err != nil && !os.IsExist(err) {
@@ -142,10 +175,12 @@ http.ListenAndServe(":8080",r)
 
 	formatted, err := format.Source(final.Bytes())
 	if err != nil {
+		io.Copy(f, bytes.NewBuffer(final.Bytes()))
 		return err
 	}
 	formatted, err = imports.Process(f.Name(), formatted, nil)
 	if err != nil {
+		io.Copy(f, bytes.NewBuffer(formatted))
 		return err
 	}
 	io.Copy(f, bytes.NewBuffer(formatted))

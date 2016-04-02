@@ -6,6 +6,7 @@ import (
 	"go/format"
 	"io"
 	"os"
+	"strings"
 	"text/template"
 
 	"golang.org/x/tools/imports"
@@ -13,6 +14,7 @@ import (
 
 type httpCodeGenerator struct {
 	DbRootPackageName string
+	Verbs             string
 }
 
 func (g *httpCodeGenerator) Generate(tables map[string]tableInfo) error {
@@ -35,8 +37,8 @@ dbi "{{.dbiroot}}/{{.Table.TableName}}"
 "github.com/gorilla/mux"
 )
 
-
-
+{{$l := len .Table.PrimaryColumns}}
+{{if .shouldGenerateGet}}
 func List(res http.ResponseWriter, req *http.Request){
     enc := json.NewEncoder(res)
     
@@ -70,7 +72,7 @@ func List(res http.ResponseWriter, req *http.Request){
     enc.Encode(rows)
 }
 
-{{$l := len .Table.PrimaryColumns}}
+
 {{if gt $l 0}}
 func Get(res http.ResponseWriter, req *http.Request){
     vars := mux.Vars(req)
@@ -91,7 +93,9 @@ func Get(res http.ResponseWriter, req *http.Request){
     enc.Encode(row)
 }
 {{end}}
+{{end}}
 
+{{if .shouldGeneratePost}}
 func Post(res http.ResponseWriter, req *http.Request){
     err := save(req)
     if err != nil {
@@ -99,6 +103,9 @@ func Post(res http.ResponseWriter, req *http.Request){
         fmt.Fprint(res, err)
     }
 }
+{{end}}
+
+{{if .shouldGeneratePut}}
 {{if gt $l 0}}
 func Put(res http.ResponseWriter, req *http.Request){
     var err error
@@ -124,12 +131,16 @@ func Put(res http.ResponseWriter, req *http.Request){
     }
 }
 {{end}}
+{{end}}
+{{if or .shouldGeneratePut .shouldGeneratePost}}
 func save(req *http.Request) error {
     dec := json.NewDecoder(req.Body)
     row := &dbi.{{.Table.NormalizedTableName}}{}
     dec.Decode(&row)
     return {{.Table.TableName}}.Save(row)
 }
+{{end}}
+{{if .shouldGenerateDelete}}
 {{if gt $l 0}}
 func Delete(res http.ResponseWriter, req *http.Request){
     vars := mux.Vars(req)
@@ -143,6 +154,7 @@ func Delete(res http.ResponseWriter, req *http.Request){
    {{end}}
     {{.Table.TableName}}.DeleteBy{{.Table.PrimaryColumnsJoinedByAnd}}(id)
 }
+{{end}}
 {{end}}
 `))
 
@@ -159,7 +171,16 @@ func Delete(res http.ResponseWriter, req *http.Request){
 			return err
 		}
 		var b bytes.Buffer
-		err = tmpl.Execute(&b, map[string]interface{}{"Table": tinfo, "DbRootPackageName": path + "/" + rootdbpath, "dbiroot": path + "/dbi"})
+		verbs := strings.Split(g.Verbs, ",")
+		err = tmpl.Execute(&b, map[string]interface{}{
+			"Table":                tinfo,
+			"DbRootPackageName":    path + "/" + rootdbpath,
+			"dbiroot":              path + "/dbi",
+			"shouldGenerateGet":    stringInSlice("get", verbs),
+			"shouldGeneratePost":   stringInSlice("post", verbs),
+			"shouldGeneratePut":    stringInSlice("put", verbs),
+			"shouldGenerateDelete": stringInSlice("delete", verbs),
+		})
 		if err != nil {
 			fmt.Println(b.String())
 			return err
@@ -183,4 +204,13 @@ func Delete(res http.ResponseWriter, req *http.Request){
 
 	tmpl = tmpl
 	return nil
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
