@@ -5,10 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"text/template"
 )
 
-type swaggerGenerator struct{ dbname string }
+type swaggerGenerator struct {
+	dbname string
+	verbs  string
+}
 
 type msi map[string]interface{}
 
@@ -30,7 +34,7 @@ func (sg *swaggerGenerator) Generate(tables map[string]tableInfo) error {
 
 	consumes := []string{"application/json"}
 	produces := consumes
-
+	verbs := strings.Split(sg.verbs, ",")
 	for _, t := range tables {
 
 		refdef := fmt.Sprintf("#/definitions/%s", t.NormalizedTableName())
@@ -61,60 +65,67 @@ func (sg *swaggerGenerator) Generate(tables map[string]tableInfo) error {
 
 		definitions[t.TableName] = def
 		request := msi{}
-		request["get"] = msi{
-			"produces": produces,
-			"responses": msi{
-				"200": msi{
-					"schema": msi{
-						"$ref": refdef,
+		if stringInSlice("get", verbs) {
+			request["get"] = msi{
+				"produces": produces,
+				"responses": msi{
+					"200": msi{
+						"schema": msi{
+							"$ref": refdef,
+						},
+						"type": "array",
 					},
-					"type": "array",
+					"400": msi{"description": "Empty collection"},
 				},
-				"400": msi{"description": "Empty collection"},
-			},
+			}
 		}
-
-		request["post"] = msi{
-			"consumes":   consumes,
-			"produces":   produces,
-			"responses":  msi{"405": msi{"description": "Invalid input"}},
-			"parameters": []msi{bodydef},
+		if stringInSlice("post", verbs) {
+			request["post"] = msi{
+				"consumes":   consumes,
+				"produces":   produces,
+				"responses":  msi{"405": msi{"description": "Invalid input"}},
+				"parameters": []msi{bodydef},
+			}
 		}
 
 		paths[fmt.Sprintf("/%s", t.CamelCaseTableName())] = request
 		if len(t.PrimaryColumns()) > 0 {
 			request = msi{}
-			request["get"] = msi{
-				"produces": produces,
-				"responses": msi{
-					"404": msi{"description": "Not Found"},
-					"200": msi{"$ref": refdef},
-				},
-				"parameters": []msi{idparam},
+			if stringInSlice("get", verbs) {
+				request["get"] = msi{
+					"produces": produces,
+					"responses": msi{
+						"404": msi{"description": "Not Found"},
+						"200": msi{"$ref": refdef},
+					},
+					"parameters": []msi{idparam},
+				}
 			}
-
-			request["put"] = msi{
-				"consumes": consumes,
-				"produces": produces,
-				"responses": msi{
-					"404": msi{"description": "Not Found"},
-					"405": msi{"description": "Invalid input"},
-				},
-				"parameters": []msi{
-					idparam,
-					bodydef,
-				},
+			if stringInSlice("put", verbs) {
+				request["put"] = msi{
+					"consumes": consumes,
+					"produces": produces,
+					"responses": msi{
+						"404": msi{"description": "Not Found"},
+						"405": msi{"description": "Invalid input"},
+					},
+					"parameters": []msi{
+						idparam,
+						bodydef,
+					},
+				}
 			}
-
-			request["delete"] = msi{
-				"consumes": consumes,
-				"produces": produces,
-				"responses": msi{
-					"404": msi{"description": "Not Found"},
-				},
-				"parameters": []msi{
-					idparam,
-				},
+			if stringInSlice("delete", verbs) {
+				request["delete"] = msi{
+					"consumes": consumes,
+					"produces": produces,
+					"responses": msi{
+						"404": msi{"description": "Not Found"},
+					},
+					"parameters": []msi{
+						idparam,
+					},
+				}
 			}
 			paths[fmt.Sprintf("/%s/{%s}", t.CamelCaseTableName(), t.PrimaryColumns()[0].LowercaseColumnName())] = request
 		}

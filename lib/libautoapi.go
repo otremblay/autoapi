@@ -123,7 +123,7 @@ func Generate(db *sql.DB, dbName string, verbs string) error {
 		fmt.Println("failed generating checksumcode")
 		return err
 	}
-	err = (&swaggerGenerator{dbName}).Generate(tables)
+	err = (&swaggerGenerator{dbname: dbName, verbs: verbs}).Generate(tables)
 	if err != nil {
 		fmt.Println("failed generating swagger json")
 		return err
